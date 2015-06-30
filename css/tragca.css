@@ -1,0 +1,13 @@
+@CHARSET "UTF-8";
+
+.formlabel {
+	width: 12el;
+}
+
+.message {
+	color: green;
+}
+
+.error {
+	color: red;
+}
