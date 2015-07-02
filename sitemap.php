@@ -2,12 +2,12 @@
 
 class SiteMap {
 	
-	public static $DefaultLevel = "normal";
+	public static $DefaultLevel = "public";
 	
 	public static $UserLevels = array(
-		"disabled" => 0,
-		"normal" => 1,
-		"login" => 5,
+		"public" => 0,
+		"unvalidated" => 5,
+		"user" => 50,
 		"admin" => 100
 	);
 	
@@ -16,25 +16,35 @@ class SiteMap {
 	public static $Pages = array(
 		//Default page
 		array(
-			'name' =>  "welcome",
-			'level' => "normal"				
+			'name'  => "welcome",
+			'level' => "public"				
 		),
+		//Default page
+		array(
+			'name'  => "register",
+			'level' => "public"
+		),	
+		//Default page
+		array(
+			'name'  => "validate",
+			'level' => "public"
+		),				
 		//Login page
 		array(
-			'name' => "login",
-			'level' => "normal"
+			'name'  => "login",
+			'level' => "public"
 		),
 		//Main menu
 		array(
-			'name' => "main",
-			'level' => "login"
+			'name'  => "main",
+			'level' => "user"
 		),	
 		//Logout
 		array(
 			'name' => "logout",
-			'level' => "login"
+			'level' => "user"
 		),
-				
+		//Administrate Users		
 		array(
 			'name' =>  "useradmin",
 			'level' => "admin"

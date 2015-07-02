@@ -7,13 +7,13 @@ class User
 {		
 	private $id;
 	private $name;
-	private $level;
+	private $nlevel; //This contains the numeric level (see SiteMap for names)
 	private $email;
 	
-	private function User($id, $name, $level, $email) {
+	private function User($id, $name, $nlevel, $email) {
 		$this->id=$id;
 		$this->name=$name;
-		$this->level=$level;
+		$this->nlevel=$nlevel;
 		$this->email=$email;
 	}
 	
@@ -31,6 +31,8 @@ class User
 			throw new InvalidArgumentException("Please provide defined level: ".$valids);
 		}
 		
+		$nlevel = SiteMap::$UserLevels[$level];
+		
 		global $db;
 		
 		//Is there a user with same name or email?
@@ -47,19 +49,19 @@ class User
 			print "Error checking duplicate name or email!";		
 		} 	
 		if($count > 0) 
-			throw new InvalidArgumentException("Name or email adress already in use! Please choose other");
+			throw new InvalidArgumentException("Name or email adress already in use! Please choose other!");
 		
 		//2do: Check Email!
 		
 		$id=-1;
 		
 		//Add user and return instance
-		$sql = "INSERT INTO users (name, password, level, email) VALUES (:name, :password, :level, :email)";
+		$sql = "INSERT INTO users (name, password, nlevel, email) VALUES (:name, :password, :nlevel, :email)";
 		try {
 			$stmt = $db->prepare($sql);
 			$stmt->bindParam(':name', $name);
 			$stmt->bindParam(':password', password_hash($password, PASSWORD_DEFAULT));
-			$stmt->bindParam(':level', SiteMap::$UserLevels[$level]);
+			$stmt->bindParam(':nlevel', $nlevel);
 			$stmt->bindParam(':email', $email);
 			$stmt->execute();	
 		} catch(PDOException $e) {
@@ -70,7 +72,7 @@ class User
 		
 		$id = $db->lastInsertId();
 		
-		$user = new User($id, $name, $level, $email);
+		$user = new User($id, $name, $nlevel, $email);
 		
 		return $user;
 	}
@@ -98,7 +100,7 @@ class User
 		
 		global $db;
 		
-		$sql = "SELECT id, name, password, level, email FROM users WHERE name=:name";
+		$sql = "SELECT id, name, password, nlevel, email FROM users WHERE name=:name";
 		try {
 			$stmt = $db->prepare($sql);
 			$stmt->bindParam(':name', $name);
@@ -118,7 +120,7 @@ class User
 				return new User( $result['id'], 
 								 $result['name'], 
 						         $result['password'], 
-						         $result['level'], 
+						         $result['nlevel'], 
 						         $result['email'] 
 						       );
 			}
@@ -131,16 +133,96 @@ class User
 		return false;
 	}
 	
-	public function hasAccess($level) {
+	public function hasAccess($level) { 
 		if(! isset(SiteMap::$UserLevels[$level]))
 			throw new Exception("Unknown user level!");
 		
-		$numlevel = SiteMap::$UserLevels[$level];		
-		
-		if( $numlevel >= SiteMap::$UserLevels[$level] )
+		$nlevel = SiteMap::$UserLevels[$level];
+				
+		if( $nlevel <= $this->nlevel )
 			return true;
 
 		return false;
 	}
 	
+	public function setAccess($level) {
+		
+		if(! isset(SiteMap::$UserLevels[$level]))
+			throw new Exception("Unknown user level!");
+
+		$nlevel = SiteMap::$UserLevels[$level];
+		
+		global $db;
+		
+		$sql = "UPDATE users SET nlevel=:nlevel WHERE id=:id";
+		try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam(':id', $this->id);
+			$stmt->bindParam(':nlevel', $nlevel);
+			$stmt->execute();
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error updating user in database!";
+			die();
+		}
+		
+		$this->nlevel = $nlevel;
+		
+		return true;
+	}
+	
+	public function generateValidationCode() {
+		$code=md5("thisisasecret".$this->name.$this->email);
+		return $code;
+	}
+	
+	/*
+	 * Sets user's new level and returns true on valid code
+	 */
+	public static function confirmValidationCode($email, $code) {
+
+		global $db;
+		
+		$sql = "SELECT id, name, nlevel FROM users WHERE email=:email";
+		
+		try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam(':email', $email);
+			$stmt->execute();		
+
+			$count = $stmt->rowCount();
+			
+			if($count > 1)
+				throw new Exception("Something wrong with user database! Found more than one accounts with name.");
+				
+			if($count == 0)
+				throw Exception("Invalid email!");
+			
+			$result = $stmt->fetch(PDO::FETCH_ASSOC);						
+			
+			$vcode = md5("thisisasecret".$result['name'].$email);			
+			
+			if($code == $vcode) {
+
+				$user = new User( $result['id'], 
+							      $result['name'], 
+						          $result['nlevel'], 
+						          $email 
+				);
+				
+				if($user->hasAccess("user")) 
+					throw new Exception("User already has login access level.");
+
+				$user->setAccess("user");
+										
+				return true;	
+			}
+							
+		} catch (Exception $e) {
+			error_log ("Error: ".$e->getMessage());
+			throw new Exception("Error validating code");
+		}
+
+		return false;
+	}
 }

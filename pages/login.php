@@ -37,8 +37,6 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 	}
 } 
 
-
-
 ?>
 
 <h2>Please provide your credentials:</h2>

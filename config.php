@@ -7,4 +7,7 @@ $dbdriver = "mysql";
 $dbhost =   "localhost";
 $dbname =   "tragca";		
 
+//EMail
+$from		= "m.verkerk@erasmusmc.nl";
+
 ?>
