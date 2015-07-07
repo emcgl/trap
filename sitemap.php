@@ -14,39 +14,42 @@ class SiteMap {
 	public static $StartPage = "welcome";
 	
 	public static $Pages = array(
-		//Default page
+		//Default
 		array(
 			'name'  => "welcome",
+			'title' => "Welcome",
 			'level' => "public"				
 		),
-		//Default page
 		array(
 			'name'  => "register",
+			'title' => "Register User",
 			'level' => "public"
 		),	
-		//Default page
 		array(
 			'name'  => "validate",
+			'title' => "Validate",
 			'level' => "public"
 		),				
-		//Login page
 		array(
 			'name'  => "login",
+			'title' => "Login",
 			'level' => "public"
 		),
-		//Main menu
 		array(
 			'name'  => "main",
+			'title' => "Main Page",
 			'level' => "user"
 		),	
 		//Logout
 		array(
-			'name' => "logout",
+			'name' =>  "logout",
+			'title' => "Logout",				
 			'level' => "user"
 		),
 		//Administrate Users		
 		array(
 			'name' =>  "useradmin",
+			'title' => "User Administration",				
 			'level' => "admin"
 		)
 	);

@@ -30,12 +30,16 @@ if(isset($_GET['page'])) {
 		throw new Exception("Page not available!");				
 	}
 	
-	$pagedata = SiteMap::$Pages[$key];
+	$pagedata = SiteMap::$Pages[$key];	
 	
-	if( ( isset($user) && $user->hasAccess($pagedata['level']) ) ||
-		( !isset($user) && $numlevel >= SiteMap::$UserLevels[$pagedata['level']]) )  {		
+	if( (isset($user) && $user->hasAccess($pagedata['level']))  ||
+		(!isset($user) && $numlevel >= SiteMap::$UserLevels[$pagedata['level']]) )  {		
 			$page = $gpage;
-		}
+	} else {
+		//Go to default!
+		header("Location: /index.php?page=$page");
+		exit;
+	}
 }
 
 //Does page file exist?

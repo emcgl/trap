@@ -77,6 +77,64 @@ class User
 		return $user;
 	}
 
+	public function update($name, $password, $level, $email) {
+		
+		$update_name=false;
+		$update_password=false;
+		$update_nlevel=false;
+		$update_email=false;		
+		
+		if( isset($name) && $name!="" && $name != $this->name ) $update_name=true;
+		if( isset($password) && $password!="" ) $update_password=true;
+		if( isset($level) && isset(SiteMap::$UserLevels[$level]) &&  $this->nlevel != SiteMap::$UserLevels[$level]) $update_nlevel=true;    
+		if( isset($email) && $email!="" && $this->email != $email) $update_email=true;
+		
+		if($update_name==false && $update_password==false && $update_nlevel==false && $update_email==false) {
+			throw new Exception("Nothing to update!");
+		}
+		
+		$sql = "UPDATE users SET";
+		$comma=0;
+		
+		if($update_name) {
+			$comma++;
+			$sql.=" name=:name";
+		}
+		if($update_password) {
+			if($comma>0) $sql.=",";$comma++;
+			$sql.=" password=:password";			
+		}
+		if($update_nlevel) {
+			if($comma>0) $sql.=","; $comma++;
+			$sql.=" nlevel=:nlevel";
+		}
+		if($update_email) {
+			if($comma>0) $sql.=","; $comma++;
+			$sql.=" email=:email";
+		}
+
+		$sql.=" WHERE id=:id";
+		
+		global $db;		
+		
+		try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam(':id', $this->id);
+			if($update_name) $stmt->bindParam(':name', $name);
+			if($update_password) $stmt->bindParam(':password', password_hash($password, PASSWORD_DEFAULT));
+			if($update_nlevel) $stmt->bindParam(':nlevel', SiteMap::$UserLevels[$level]);
+			if($update_email)$stmt->bindParam(':email', $email);
+			$stmt->execute();
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error updating user!";
+			die();
+		}
+		
+		return;
+		
+	}
+	
 	public function delete() {
 		
 		global $db;
@@ -119,7 +177,6 @@ class User
 			if( password_verify($password, $result['password']) ) {
 				return new User( $result['id'], 
 								 $result['name'], 
-						         $result['password'], 
 						         $result['nlevel'], 
 						         $result['email'] 
 						       );
@@ -138,7 +195,7 @@ class User
 			throw new Exception("Unknown user level!");
 		
 		$nlevel = SiteMap::$UserLevels[$level];
-				
+		
 		if( $nlevel <= $this->nlevel )
 			return true;
 
@@ -225,4 +282,21 @@ class User
 
 		return false;
 	}
+	
+	public function linkPage($page) {
+		
+		$key = array_search( $page, array_column(SiteMap::$Pages, 'name') );
+		
+		if(is_bool($key) && $key==false) {
+			throw new Exception("Page not available!");
+		}
+			
+		$pagedata = SiteMap::$Pages[$key];
+		
+		if($this->hasAccess($pagedata['level'])) {
+			return "<a href=\"/index.php?page=$page\">".$pagedata['title']."</a>"; 
+		} else 
+			return "";
+	}
+		
 }

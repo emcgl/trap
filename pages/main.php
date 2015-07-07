@@ -1,4 +1,20 @@
+<?php 
+include_once dirname(__FILE__)."/../includes/database.php";
+include_once dirname(__FILE__)."/../sitemap.php";
+include_once dirname(__FILE__)."/../classes/user.class.php";
+
+$user=$_SESSION['user']; 
+?> 
+
 <h1>Transcriptome Age Calculation Tool - Main</h1>
 Please select:<br/>
-<a href="/index.php?page=update">Update Account Information</a><br/>
-<a href="/index.php?page=logout">Logout</a><br/>
+
+<?php 
+
+
+echo $user->linkPage("useradmin");
+echo $user->linkPage("logout"); 
+?>
+
+<?php 
+
