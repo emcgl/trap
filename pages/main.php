@@ -7,11 +7,7 @@ $user=$_SESSION['user'];
 ?> 
 
 <h1>Transcriptome Age Calculation Tool - Main</h1>
-Please select:<br/>
-
 <?php 
-
-
 echo $user->linkPage("useradmin");
 echo $user->linkPage("logout"); 
 ?>

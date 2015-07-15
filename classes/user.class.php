@@ -294,9 +294,65 @@ class User
 		$pagedata = SiteMap::$Pages[$key];
 		
 		if($this->hasAccess($pagedata['level'])) {
-			return "<a href=\"/index.php?page=$page\">".$pagedata['title']."</a>"; 
+			return "<a class=\"menu\" href=\"/index.php?page=$page\">".$pagedata['title']."</a>"; 
 		} else 
 			return "";
 	}
+
+	public static function userTable($user) {
+			
+			global $db;
+
+			
+			$r= "<tr>";
+			$r.="<td>$user->id</td>";
+			$r.="<td><input id=\"name_".$user->id."\" type=\"text\">".$user->name."</input></td>".PHP_EOL;
+			$r.="<td><input id=\"password_".$user->id." type=\"text\"></input></td>".PHP_EOL;
+			$r.="<td><select id=\"level_".$user->id."\" name=\"level_".$user->id."\">".PHP_EOL;
+			foreach(SiteMap::$UserLevels as $level => $nlevel) {
+				$r.="<option value=\"".$nlevel."\"".($user->nlevel == $nlevel ?  " selected" : "").">".$level."</option>".PHP_EOL;
+			}									
+			$r.="</select>".PHP_EOL;	
+			$r.="<td><input id=\"email_".$user->id." type=\"text\">".$user->email."</input></td>".PHP_EOL;
+			
+			return $r;
+/*			
+			$sql = "SELECT id, name, password, nlevel, email FROM users WHERE id=:id";
+			try {
+				$stmt = $db->prepare($sql);
+				$stmt->bindParam(':id', $id);
+				$stmt->execute();
+
+			$count = $stmt->rowCount();
+
+			if($count > 1)
+				throw new Exception("Something wrong with user database! Found more than one accounts with name.");
+			
+			if($count == 0)
+				return false;
+							
+			$result = $stmt->fetch(PDO::FETCH_ASSOC);
+			
+			$result['dbid']
+			$result['dbname'] 
+			$result['dbpassword']
+			$result['dbnlevel'] 
+			$result['dbemail'] 
+						     
+			}
+			
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error checking duplicate name or email!";
+		}			
+	*/	
 		
+	}
+
+	public static function usersTable($update=false) {
+	
+	}
+	
+	
+	
 }

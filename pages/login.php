@@ -30,7 +30,7 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 			unset($_SESSION['loginattempts']);
 			echo "<div class=\"message\">Welcome!</div><br/>".PHP_EOL;
 			echo $user->linkPage('main');
-			//echo "<a href=\"/index.php?page=main\">Continue to Main Page</a><br/>".PHP_EOL; 
+			echo $user->linkPage('logout');
 			return;
 		} else {
 			throw new Exception("Unexpected user class name!");

@@ -15,3 +15,17 @@
 .error {
 	color: red;
 }
+
+.menu {
+	font-weight: bold;
+	text-decoration: none;
+	background-color: white;
+	color: black;
+	margin: 10px;
+	padding: 1el;
+}
+
+.menu:hover {
+	background-color: black;
+	color: white;
+}

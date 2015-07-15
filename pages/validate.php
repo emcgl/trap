@@ -10,8 +10,8 @@ if(isset($_GET['email']) && isset($_GET['code'])) {
 		
 		User::confirmValidationCode($email, $code);
 ?>
-	<div class="message">Thank you for validating your email address. Your account is available. </div><br/>
-	<a href="/index.php?page=login">Go to Login</a><br/>
+	<div class="message">Thank you for validating your email address. Your account is enabled. </div><br/>
+	<a class="menu" href="/index.php?page=login">Login</a><br/>
 <?php 
 		
 	} catch(Exception $e ) {
