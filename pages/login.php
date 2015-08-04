@@ -1,7 +1,8 @@
-<h1>Transcriptome Age Calculation Tool - Login</h1>
+<h1>Transcriptomic Age Calculation Tool - Login</h1>
 <?php 
 
 include_once dirname(__FILE__)."/../classes/user.class.php";
+include_once dirname(__FILE__)."/../includes/page.php";
 
 //Initialize attempts
 if(!isset($_SESSION['loginattempts'])) {
@@ -29,8 +30,8 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 			$_SESSION['user']=$user;
 			unset($_SESSION['loginattempts']);
 			echo "<div class=\"message\">Welcome!</div><br/>".PHP_EOL;
-			echo $user->linkPage('main');
-			echo $user->linkPage('logout');
+			echo Page::link('main', $user);
+			echo Page::link('logout', $user); 
 			return;
 		} else {
 			throw new Exception("Unexpected user class name!");

@@ -1,11 +1,12 @@
 <?php 
 
 include_once dirname(__FILE__)."/../classes/user.class.php";
+include_once dirname(__FILE__)."/../includes/page.php";
 
 $warning=null;
 
 ?>
-<h1>Transcriptome Age Calculation Tool - Register</h1>
+<h1>Transcriptomic Age Calculation Tool - Register</h1>
 
 <?php 
 if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password']) && isset($_POST['vpassword'])) {
@@ -61,7 +62,6 @@ if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password'])
 
 
 ?>
-
 
 <script>
 function validateForm() {

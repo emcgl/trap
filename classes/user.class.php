@@ -283,22 +283,6 @@ class User
 		return false;
 	}
 	
-	public function linkPage($page) {
-		
-		$key = array_search( $page, array_column(SiteMap::$Pages, 'name') );
-		
-		if(is_bool($key) && $key==false) {
-			throw new Exception("Page not available!");
-		}
-			
-		$pagedata = SiteMap::$Pages[$key];
-		
-		if($this->hasAccess($pagedata['level'])) {
-			return "<a class=\"menu\" href=\"/index.php?page=$page\">".$pagedata['title']."</a>"; 
-		} else 
-			return "";
-	}
-
 	public static function userTable($user) {
 			
 			global $db;

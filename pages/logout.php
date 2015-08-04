@@ -1,4 +1,4 @@
-<h1>Transcriptome Age Calculation Tool - Goodbye!</h1>
+<h1>Transcriptomic Age Calculation Tool - Goodbye!</h1>
 <?php
 if(isset($_SESSION['user'])) 
 	unset($_SESSION['user']);
