@@ -3,5 +3,6 @@
 <head>
 	<title>Transcriptomic Age Calculation</title>
 	<link rel="stylesheet" href="/css/tragca.css">
+	<script src="/js/tragca.js"></script>
 </head>
 <body>

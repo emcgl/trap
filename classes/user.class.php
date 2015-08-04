@@ -77,6 +77,79 @@ class User
 		return $user;
 	}
 
+	public static function login($name, $password) {
+	
+		global $db;
+	
+		$sql = "SELECT id, name, password, nlevel, email FROM users WHERE name=:name";
+		try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam(':name', $name);
+			$stmt->execute();
+	
+			$count = $stmt->rowCount();
+	
+			if($count > 1)
+				throw new Exception("Something wrong with user database! Found more than one accounts with name.");
+				
+			if($count == 0)
+				return false;
+				
+			$result = $stmt->fetch(PDO::FETCH_ASSOC);
+				
+			if( password_verify($password, $result['password']) ) {
+				return new User( $result['id'],
+						$result['name'],
+						$result['nlevel'],
+						$result['email']
+				);
+			}
+				
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error checking duplicate name or email!";
+		}
+	
+		return false;
+	}
+	
+	/*
+	 * Retrieve from database
+	 */
+	public static function retrieve($id) {
+	
+		$sql = "SELECT id, name, nlevel, email FROM users WHERE id=:id";
+	
+		global $db;
+		
+		$stmt = $db->prepare($sql);
+		
+		try {
+			$stmt->bindParam(':id', $id);
+			$stmt->execute();				
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error getting user!";
+		}
+		
+		$count = $stmt->rowCount();
+		
+		if($count > 1)
+			throw new Exception("Something wrong with user database! Found more than one accounts with id.");
+		
+		if($count == 0)
+			return false;
+		
+		$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		
+		return new User( $result['id'],
+				$result['name'],
+				$result['nlevel'],
+				$result['email']
+				);									
+		
+	}
+	
 	public function update($name, $password, $level, $email) {
 		
 		$update_name=false;
@@ -152,42 +225,6 @@ class User
 		
 		return;
 				
-	}
-	
-	public static function login($name, $password) {
-		
-		global $db;
-		
-		$sql = "SELECT id, name, password, nlevel, email FROM users WHERE name=:name";
-		try {
-			$stmt = $db->prepare($sql);
-			$stmt->bindParam(':name', $name);
-			$stmt->execute();
-
-			$count = $stmt->rowCount();
-
-			if($count > 1)
-				throw new Exception("Something wrong with user database! Found more than one accounts with name.");
-			
-			if($count == 0)
-				return false;
-							
-			$result = $stmt->fetch(PDO::FETCH_ASSOC);
-			
-			if( password_verify($password, $result['password']) ) {
-				return new User( $result['id'], 
-								 $result['name'], 
-						         $result['nlevel'], 
-						         $result['email'] 
-						       );
-			}
-			
-		} catch(PDOException $e) {
-			error_log ("Error: ".$e->getMessage());
-			print "Error checking duplicate name or email!";
-		}		
-		
-		return false;
 	}
 	
 	public function hasAccess($level) { 
@@ -283,60 +320,60 @@ class User
 		return false;
 	}
 	
-	public static function userTable($user) {
+	/* Table Header Row */
+	public function trth($edit=false) {
+		
+		$r="";
+		
+		$r.="<tr class=\"userheader\"><th>ID</th><th>Name</th><th>Password</th><th>Access Level</th><th>EMail</th>";
+		
+		if($edit) 
+			$r.="<th>Update</th><th>Delete</th>";
+		
+		$r.="</tr>".PHP_EOL;
 			
-			global $db;
-
-			
-			$r= "<tr>";
-			$r.="<td>$user->id</td>";
-			$r.="<td><input id=\"name_".$user->id."\" type=\"text\">".$user->name."</input></td>".PHP_EOL;
-			$r.="<td><input id=\"password_".$user->id." type=\"text\"></input></td>".PHP_EOL;
-			$r.="<td><select id=\"level_".$user->id."\" name=\"level_".$user->id."\">".PHP_EOL;
-			foreach(SiteMap::$UserLevels as $level => $nlevel) {
-				$r.="<option value=\"".$nlevel."\"".($user->nlevel == $nlevel ?  " selected" : "").">".$level."</option>".PHP_EOL;
-			}									
-			$r.="</select>".PHP_EOL;	
-			$r.="<td><input id=\"email_".$user->id." type=\"text\">".$user->email."</input></td>".PHP_EOL;
-			
-			return $r;
-/*			
-			$sql = "SELECT id, name, password, nlevel, email FROM users WHERE id=:id";
-			try {
-				$stmt = $db->prepare($sql);
-				$stmt->bindParam(':id', $id);
-				$stmt->execute();
-
-			$count = $stmt->rowCount();
-
-			if($count > 1)
-				throw new Exception("Something wrong with user database! Found more than one accounts with name.");
-			
-			if($count == 0)
-				return false;
-							
-			$result = $stmt->fetch(PDO::FETCH_ASSOC);
-			
-			$result['dbid']
-			$result['dbname'] 
-			$result['dbpassword']
-			$result['dbnlevel'] 
-			$result['dbemail'] 
-						     
-			}
-			
-		} catch(PDOException $e) {
-			error_log ("Error: ".$e->getMessage());
-			print "Error checking duplicate name or email!";
-		}			
-	*/	
+		return $r;
 		
 	}
-
-	public static function usersTable($update=false) {
 	
+	/* Table Row */
+	public function trtd($edit=false) {
+			
+		$r="";
+		
+		if(!$edit) {
+			
+			$r.="<tr>";
+			$r.="<td>".$this->id."</td>";
+			$r.="<td>".$this->name."</td>";
+			$r.="<td>[Secret]</td>";
+			$level = array_search($this->nlevel, SiteMap::$UserLevels);
+			$r.="<td>".$level."</td>";
+			$r.="<td>".$this->email."</td>";
+			$r.="</tr>".PHP_EOL;
+			
+			return $r;
+		}
+		
+		if($edit) {
+		
+			$r= "<tr>";
+			$r.="<td>".$this->id."</td>";
+			$r.="<td><input id=\"name_".$this->id."\" type=\"text\" value=\"".$this->name."\"></td>";
+			$r.="<td><input id=\"password_".$this->id." type=\"text\ value=\"\"></td>";
+			$r.="<td><select id=\"level_".$this->id."\" name=\"level_".$this->id."\">".PHP_EOL;
+			foreach(SiteMap::$UserLevels as $level => $nlevel) {
+				$r.="<option value=\"".$nlevel."\"".($this->nlevel == $nlevel ?  " selected" : "").">".$level."</option>".PHP_EOL;
+			}
+			$r.="</select>".PHP_EOL;
+			$r.="<td><input id=\"email_".$this->id." type=\"text\" value=\"".$this->email."\"></td>".PHP_EOL;
+			$r.="<td><input id=\"update_".$this->id."\" type=\"submit\" value=\"Update\"></td>";
+			$r.="<td><input id=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure();\"></td>";
+			
+			return $r;
+		}
+		
+		return;
 	}
-	
-	
 	
 }
