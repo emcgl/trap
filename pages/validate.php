@@ -25,6 +25,10 @@ if(isset($_GET['email']) && isset($_GET['code'])) {
 <?php 		
 	}
 		
+} else {
+?>	
+	<div class="error">Error validating your account!</div><br/>
+<?php
 }
 
 ?>

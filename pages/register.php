@@ -1,5 +1,6 @@
 <?php 
 
+include_once dirname(__FILE__)."/../config.php";
 include_once dirname(__FILE__)."/../classes/user.class.php";
 include_once dirname(__FILE__)."/../includes/page.php";
 
@@ -9,21 +10,11 @@ $warning=null;
 <h1>Transcriptomic Age Calculation Tool - Register</h1>
 
 <?php 
-if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password']) && isset($_POST['password2'])) {
-	
-	$name      = $_POST['name'];
-	$email     = $_POST['email'];
-	$password  = $_POST['password'];
-	
-	$level = "unvalidated";
-	
-	try {
-		$user = User::create($name, $password, $level, $email);	
-	} catch(Exception $e) {	
-		$warning = $e->getMessage();
-	}
-	
-	if(get_class($user)=="User") {
+if( isset($_POST) && $user=User::handle($_POST)) {
+
+		$user->update($name="", $password="", $level="unvalidated", $email="");	
+
+		$email=$_POST['email'];
 		
 		$simplehash = $user->generateValidationCode();						
 		
@@ -33,8 +24,8 @@ if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password'])
 <p>A message will be send to the specified email address. Please follow the provided link in order to verify your email and activate your account!<p>
 
 <?php
- 		
-	$to      = $email;
+ 			
+
 	$subject = 'validate your account!';
 	$message = "Dear Sir / Madam\n".
 			   "\n".
@@ -48,15 +39,14 @@ if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password'])
 			   "\n".
 			   (isset($_SERVER['HTTPS']) ? "https://" : "http://").$_SERVER['SERVER_NAME']."/index.php?page=validate&email=".$email."&code=".$simplehash."\n".
 			   "\n";			   
-	$headers = 'From: anonymous' . "\r\n";  
+	$headers = 'From: $from' . "\r\n";  
 
 	//mail($to, $subject, $message, $headers);
 	
 	echo "Message:".$message;
 	
 	exit(0);
-	}
-	
+		
 }
 
 
@@ -70,17 +60,7 @@ if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password'])
 	
 	?>
 <form name="register" action="/index.php?page=register" onsubmit="return validatePassword()" method="POST">
-<div class="formlabel">Name:</div>
-<input type="text" name="name" required/>
-<br/>
-<div class="formlabel">E-Mail (needed for validation of account and retrieval of results!):</div>
-<input type="text" name="email" size="30" required />
-<br/>
-<div lass="formlabel">Password:</div>
-<input type="password" name="password" required />
-<div class="formlabel">Verify Password:</div>
-<input type="password" name="password2" required />
-<br/>
-<br/>
-<input type="submit" value="Submit">
+<?php 
+echo User::form($level=false,$submitid="register",$submitvalue="Register");
+?>
 </form>

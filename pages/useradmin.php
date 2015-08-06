@@ -1,10 +1,10 @@
 <?php
 
-	include_once dirname(__FILE__)."/classes/user.class.php";
-	include_once dirname(__FILE__)."/config.php";
-	include_once dirname(__FILE__)."/sitemap.php";
+	include_once dirname(__FILE__)."/../classes/user.class.php";
+	include_once dirname(__FILE__)."/../config.php";
+	include_once dirname(__FILE__)."/../sitemap.php";
 	include_once dirname(__FILE__)."/../includes/page.php";	
-	include dirname(__FILE__)."/includes/header.php";
+		
 ?>
 <h1>Transcriptomic Age Calculation Tool - User Administration</h1>
 <?php 	
@@ -24,12 +24,12 @@
 		
 	echo "<form action=\"/index.php?page=useradmin\" method=\"POST\">".PHP_EOL;
 	echo "<table>".PHP_EOL;
-	echo User::tableHeader($edit);
+	echo User::tableHeader($edit=$edit);
 	foreach($ids as $id) {
 		if($currentuser->hasId($id)) //Don't show current user!
 			continue;
 		$user = User::retrieve($id);	
-		echo $user->tableData($edit);
+		echo $user->tableData($edit=$edit);
 		unset($user);
 	}
 	echo "</table>".PHP_EOL;
@@ -42,10 +42,9 @@
 	
 	echo "</form>".PHP_EOL;
 	echo "<br/>".PHP_EOL;
-	echo Page::link('main', $user);
-	echo Page::link('logout', $user);
-	
-	include dirname(__FILE__)."/includes/footer.php";
+
+	echo Page::link('main', $currentuser);
+	echo Page::link('logout', $currentuser);
 	
 ?>
 

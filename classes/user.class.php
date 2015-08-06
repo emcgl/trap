@@ -296,7 +296,7 @@ class User
 				throw new Exception("Something wrong with user database! Found more than one accounts with name.");
 				
 			if($count == 0)
-				throw Exception("Invalid email!");
+				throw new Exception("Invalid email!");
 			
 			$result = $stmt->fetch(PDO::FETCH_ASSOC);						
 			
@@ -325,6 +325,12 @@ class User
 
 		return false;
 	}
+	
+	public function mail($subject, $text) {
+		
+		
+	}
+	
 	
 	/* Table Header Row */
 	public static function tableHeader($edit=false) {
@@ -395,7 +401,7 @@ class User
 				echo "<div class=\"message\">Deleting user with id $id</div><br/>".PHP_EOL;
 				$user = User::retrieve($id);								
 				$user->delete();				
-				return;
+				return $user;
 			} else 
 			//update?		
 			if(strncmp($name, "update", 6)==0 && $value=="Update") {
@@ -411,9 +417,34 @@ class User
 				
 				$user->update($name, $password, $level, $email);
 				
-				return;
-			}
+				return $user;
+			} else 
+			//add
+			if($name=="add" && $value=="Add") {
+
+				$name=$requestdata['name'];
+				$password=$requestdata['password'];
+				$level = array_search($requestdata['nlevel'], SiteMap::$UserLevels);
+				$email=$requestdata['email'];
 		
+				echo "<div class=\"message\">Adding user $name</div><br/>".PHP_EOL;
+
+				$user = User::create($name, $password, $level, $email);
+				
+				return $user;
+			} else
+			//register
+			if($name=="register" && $value=="Register") {
+				$name=$requestdata['name'];
+				$password=$requestdata['password'];
+				$level = array_search(0, SiteMap::$UserLevels);
+				$email=$requestdata['email'];
+				
+				$user = User::create($name, $password, $level, $email);
+				
+				return $user;
+			}
+			
 			return false;
 		
 	} 
@@ -446,6 +477,28 @@ class User
 		
 	}
 	
+	public static function form($level=false, $submitid="submit", $submitvalue="Submit") {
+		
+		$r="";
+		
+		$r.="<table>".PHP_EOL;
+		$r.="<tr><th>Name</th><td><input id= \"name\" type=\"text\" name=\"name\" required/></td></tr>".PHP_EOL;
+		$r.="<tr><th>E-Mail</th><td><input id=\"email\" type=\"email\" name=\"email\" size=\"30\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Password</th><td><input id=\"password\" type=\"password\" name=\"password\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Verify Password</th><td><input id=\"password2\" type=\"password\" name=\"password2\" required /></td></tr>".PHP_EOL;
+		if($level) {
+		$r.="<tr><th>Level</th><td><select id=\"nlevel\" name=\"nlevel\">".PHP_EOL;
+			foreach(SiteMap::$UserLevels as $level => $nlevel)
+				$r.="<option value=\"".$nlevel."\">".$level."</option>".PHP_EOL;
+			$r.="</select></td></tr>".PHP_EOL;			
+		}
+		$r.="</table>".PHP_EOL;	
+		$r.="<br/>".PHP_EOL;
+		$r.="<input id=\"".$submitid."\" name=\"".$submitid."\" type=\"submit\" value=\"".$submitvalue."\"><br/>".PHP_EOL;
+		
+		return $r;
+	}
+
 	
 	
 }
