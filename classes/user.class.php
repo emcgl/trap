@@ -9,7 +9,7 @@ class User
 	private $name;
 	private $nlevel; //This contains the numeric level (see SiteMap for names)
 	private $email;
-	
+		
 	private function User($id, $name, $nlevel, $email) {
 		$this->id=$id;
 		$this->name=$name;
@@ -239,6 +239,12 @@ class User
 		return false;
 	}
 	
+	public function hasId($id) {
+		if($id==$this->id)
+			return true;
+		return false;
+	}
+	
 	public function setAccess($level) {
 		
 		if(! isset(SiteMap::$UserLevels[$level]))
@@ -321,7 +327,7 @@ class User
 	}
 	
 	/* Table Header Row */
-	public function trth($edit=false) {
+	public static function tableHeader($edit=false) {
 		
 		$r="";
 		
@@ -337,10 +343,11 @@ class User
 	}
 	
 	/* Table Row */
-	public function trtd($edit=false) {
+	public function tableData($edit=false) {
 			
 		$r="";
 		
+		//Make table row with user data
 		if(!$edit) {
 			
 			$r.="<tr>";
@@ -355,25 +362,90 @@ class User
 			return $r;
 		}
 		
+		//Make table row with form to adjust user data
 		if($edit) {
 		
 			$r= "<tr>";
 			$r.="<td>".$this->id."</td>";
-			$r.="<td><input id=\"name_".$this->id."\" type=\"text\" value=\"".$this->name."\"></td>";
-			$r.="<td><input id=\"password_".$this->id." type=\"text\ value=\"\"></td>";
-			$r.="<td><select id=\"level_".$this->id."\" name=\"level_".$this->id."\">".PHP_EOL;
+			$r.="<td><input id=\"name_".$this->id."\" name=\"name_".$this->id."\" type=\"text\" value=\"".$this->name."\"></td>";
+			$r.="<td><input id=\"password_".$this->id."\" name=\"password_".$this->id."\" type=\"password\" value=\"\"></td>";
+			$r.="<td><select id=\"nlevel_".$this->id."\" name=\"nlevel_".$this->id."\">".PHP_EOL;
 			foreach(SiteMap::$UserLevels as $level => $nlevel) {
 				$r.="<option value=\"".$nlevel."\"".($this->nlevel == $nlevel ?  " selected" : "").">".$level."</option>".PHP_EOL;
 			}
 			$r.="</select>".PHP_EOL;
-			$r.="<td><input id=\"email_".$this->id." type=\"text\" value=\"".$this->email."\"></td>".PHP_EOL;
-			$r.="<td><input id=\"update_".$this->id."\" type=\"submit\" value=\"Update\"></td>";
-			$r.="<td><input id=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure();\"></td>";
+			$r.="<td><input id=\"email_".$this->id."\" name=\"email_".$this->id."\" type=\"text\" value=\"".$this->email."\"></td>".PHP_EOL;
+			$r.="<td><input id=\"update_".$this->id."\" name=\"update_".$this->id."\" type=\"submit\" value=\"Update\"></td>";
+			$r.="<td><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure();\"></td>";
 			
 			return $r;
 		}
 		
 		return;
 	}
+
+	public static function handle($requestdata) {
+		
+		foreach($requestdata as $name => $value) 
+			//delete?
+			if(strncmp($name, "delete", 6)==0 && $value=="Delete") {
+				
+				$id=substr($name, 7, strlen($name)-7);											
+
+				echo "<div class=\"message\">Deleting user with id $id</div><br/>".PHP_EOL;
+				$user = User::retrieve($id);								
+				$user->delete();				
+				return;
+			} else 
+			//update?		
+			if(strncmp($name, "update", 6)==0 && $value=="Update") {
+				
+				$id=substr($name, 7, strlen($name)-7);
+				echo "<div class=\"message\">Updating user with id $id</div><br/>".PHP_EOL;
+				$user = User::retrieve($id);
+
+				$name=$requestdata['name_'.$id];
+				$password=$requestdata['password_'.$id];
+				$level = array_search($requestdata['nlevel_'.$id], SiteMap::$UserLevels);
+				$email=$requestdata['email_'.$id];		
+				
+				$user->update($name, $password, $level, $email);
+				
+				return;
+			}
+		
+			return false;
+		
+	} 
+	
+	public static function getIds() {
+		$sql = "SELECT id FROM users ORDER BY id;";
+		
+		global $db;
+		
+		$stmt = $db->prepare($sql);
+		
+		try {
+			$stmt->execute();
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error getting user!";
+		}
+		
+		$count = $stmt->rowCount();
+				
+		if($count == 0)
+			return false;
+		
+		$r=array();
+		
+		while($result = $stmt->fetch(PDO::FETCH_ASSOC))
+			$r[]=$result['id'];
+		
+		return $r;
+		
+	}
+	
+	
 	
 }

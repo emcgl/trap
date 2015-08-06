@@ -9,12 +9,11 @@ $warning=null;
 <h1>Transcriptomic Age Calculation Tool - Register</h1>
 
 <?php 
-if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password']) && isset($_POST['vpassword'])) {
+if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password']) && isset($_POST['password2'])) {
 	
 	$name      = $_POST['name'];
 	$email     = $_POST['email'];
 	$password  = $_POST['password'];
-	//$vpass     = $_POST['vpassword'];
 	
 	$level = "unvalidated";
 	
@@ -63,28 +62,6 @@ if( isset($_POST['name']) && isset($_POST['email']) && isset($_POST['password'])
 
 ?>
 
-<script>
-function validateForm() {
-
-	//Validate Password
-	//Good length (min 8 chars)
-	var passlength = document.forms["register"]["password"].value.length;
-	if(passlength < 8) {
-		alert("Please enter password with minimal length of 8 characters!");
-		return false;
-	}
-	//Passwords match?
-	var pass = document.forms["register"]["password"].value;
-	var pass2 = document.forms["register"]["vpassword"].value;
-	if( pass != pass2 ) {
-		alert("Passwords don't match!");
-		return false;
-	}
-
-	return true;
-}
-</script>
-
 <h2>Please provide your personal data:</h2>
 <?php 
 	if(isset($warning) ) {
@@ -92,7 +69,7 @@ function validateForm() {
 	}
 	
 	?>
-<form name="register" action="/index.php?page=register" onsubmit="return validateForm()" method="POST">
+<form name="register" action="/index.php?page=register" onsubmit="return validatePassword()" method="POST">
 <div class="formlabel">Name:</div>
 <input type="text" name="name" required/>
 <br/>
@@ -102,7 +79,7 @@ function validateForm() {
 <div lass="formlabel">Password:</div>
 <input type="password" name="password" required />
 <div class="formlabel">Verify Password:</div>
-<input type="password" name="vpassword" required />
+<input type="password" name="password2" required />
 <br/>
 <br/>
 <input type="submit" value="Submit">

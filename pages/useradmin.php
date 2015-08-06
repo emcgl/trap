@@ -1,42 +1,51 @@
-<?php 
-include_once dirname(__FILE__)."/../includes/database.php";
-include_once dirname(__FILE__)."/../sitemap.php";
-include_once dirname(__FILE__)."/../classes/user.class.php";
-include_once dirname(__FILE__)."/../includes/page.php";
-
-?>
-<h1>Transcriptomic Age Calculation Tool - User Administration</h1>
 <?php
 
-	$sql = "SELECT id, name, nlevel, email FROM users";
-
-	$user_data = array();
-	$dbout=null;
+	include_once dirname(__FILE__)."/classes/user.class.php";
+	include_once dirname(__FILE__)."/config.php";
+	include_once dirname(__FILE__)."/sitemap.php";
+	include_once dirname(__FILE__)."/../includes/page.php";	
+	include dirname(__FILE__)."/includes/header.php";
+?>
+<h1>Transcriptomic Age Calculation Tool - User Administration</h1>
+<?php 	
 	
-	try {
-		$stmt = $db->prepare($sql);
-		$stmt->execute();
-		$count = $stmt->rowCount();
-		
-		//print $count;
-		
-		if($count>0) {
-			
-			print "<table class=\"userstable\">".PHP_EOL;
-			print "<tr><th>id</th><th>name</th><th>nlevel</th><th>email</th>".PHP_EOL;
-			
-			while($dbout = $stmt->fetch(PDO::FETCH_ASSOC)) {
-				print "<tr><td>".$dbout["id"]."</td><td>".$dbout["name"]."</td><td>".$dbout["nlevel"]."</td><td>".$dbout["email"]."</td></tr>".PHP_EOL;
-			}
-		
-			print "</table>".PHP_EOL;
-		}
+	$currentuser=$_SESSION['user'];
 
-	} catch(PDOException $e) {
-		error_log ("Error: ".$e->getMessage());
-		print "Error checking duplicate name or email!";
+	if(isset($_REQUEST)) {
+		User::handle($_REQUEST);
+	}		
+	
+	$edit=false;
+	if(isset($_REQUEST['edit']) && $_REQUEST['edit']=='true') {
+		$edit=true; 
 	}
-
+	
+	$ids = User::getIds();
 		
+	echo "<form action=\"/index.php?page=useradmin\" method=\"POST\">".PHP_EOL;
+	echo "<table>".PHP_EOL;
+	echo User::tableHeader($edit);
+	foreach($ids as $id) {
+		if($currentuser->hasId($id)) //Don't show current user!
+			continue;
+		$user = User::retrieve($id);	
+		echo $user->tableData($edit);
+		unset($user);
+	}
+	echo "</table>".PHP_EOL;
+	echo "<input id=\"edit\" name=\"edit\" type=\"hidden\" value=\"".($edit ? "true" : "false")."\">".PHP_EOL; 
+	echo "<br/>".PHP_EOL;	
+	if($edit) 
+		echo "<input type=\"submit\" value=\"Read Only Mode\" onclick=\"return updateValue('edit', 'false');\">".PHP_EOL;
+	else
+		echo "<input type=\"submit\" value=\"Edit Mode\" onclick=\"return updateValue('edit', 'true');\">".PHP_EOL;
+	
+	echo "</form>".PHP_EOL;
+	echo "<br/>".PHP_EOL;
+	echo Page::link('main', $user);
+	echo Page::link('logout', $user);
+	
+	include dirname(__FILE__)."/includes/footer.php";
+	
 ?>
 

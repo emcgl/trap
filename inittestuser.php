@@ -14,10 +14,13 @@ try {
 	echo "Error: ".$e->getMessage()."<br/>".PHP_EOL;
 }
 
-echo "Creating 'Normal User'<br/>";
-try {
-	$user = User::create("Normal User", "test123", "user", "normaluser@erasmusmc.nl");
-} catch(Exception $e) {
-	echo "Error: ".$e->getMessage()."<br/>".PHP_EOL;
-}
+echo "Creating 'Normal Users'<br/>";
 
+for($i=0;$i<10;$i++) {
+
+	try {
+		$user = User::create("Normal User $i", "test123", "user", "normaluser$i@erasmusmc.nl");
+	} catch(Exception $e) {
+		echo "Error: ".$e->getMessage()."<br/>".PHP_EOL;
+	}
+}
