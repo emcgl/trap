@@ -62,8 +62,8 @@ class User
 			$stmt->bindParam(':name', $name);
 			$stmt->bindParam(':password', password_hash($password, PASSWORD_DEFAULT));
 			$stmt->bindParam(':nlevel', $nlevel);
-			$stmt->bindParam(':email', $email);
-			$stmt->execute();	
+			$stmt->bindParam(':email', $email);			
+			$stmt->execute();						
 		} catch(PDOException $e) {
 			error_log ("Error: ".$e->getMessage());
 			print "Error inserting new user!";
@@ -72,7 +72,13 @@ class User
 		
 		$id = $db->lastInsertId();
 		
-		$user = new User($id, $name, $nlevel, $email);
+		//Creating user data folder
+		if(!mkdir(dirname(__FILE__)."/../data/users/$id")) {
+			error_log("User $id may is in db but doesn't have data folder!");
+			die("Error creating user data folder!");
+		}
+				
+		$user = new User($id, $name, $nlevel, $email);			
 		
 		return $user;
 	}
@@ -223,6 +229,9 @@ class User
 			die();
 		}
 		
+		//Moving user folder to trash (maybe delete later)
+		rename(dirname(__FILE__)."/../data/users/$this->id", dirname(__FILE__)."/../data/trash/$this->id");
+
 		return;
 				
 	}
