@@ -155,6 +155,11 @@ class User
 				);									
 		
 	}
+
+	public static function retrieveName($id) {
+		$user=User::retrieve($id);
+		return $user->name;
+	}
 	
 	public function update($name, $password, $level, $email) {
 		
@@ -254,6 +259,11 @@ class User
 		return false;
 	}
 	
+	public function isAdmin() {
+		return $this->hasAccess("admin");
+	}
+	
+	
 	public function setAccess($level) {
 		
 		if(! isset(SiteMap::$UserLevels[$level]))
@@ -338,8 +348,7 @@ class User
 	public function mail($subject, $text) {
 		
 		
-	}
-	
+	}	
 	
 	/* Table Header Row */
 	public static function tableHeader($edit=false) {

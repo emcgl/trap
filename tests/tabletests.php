@@ -1,7 +1,7 @@
 <?php
-include_once dirname(__FILE__)."/classes/user.class.php";
-include_once dirname(__FILE__)."/config.php";
-include_once dirname(__FILE__)."/sitemap.php";
+include_once dirname(__FILE__)."/../classes/user.class.php";
+include_once dirname(__FILE__)."/../config.php";
+include_once dirname(__FILE__)."/../sitemap.php";
 
 $admin=null;
 
