@@ -26,3 +26,21 @@ function validatePassword() {
 
 	return true;
 }
+
+
+//Dis/En-ables age file upload on predictor type
+function needAgeFile() {
+	value = document.getElementById("predictortype").value;
+	
+	if(value=="scaled") {
+		document.getElementById("agefile").disabled=true;
+		return true;
+	} else	if(value=="general") {
+		document.getElementById("agefile").disabled=false;
+		return true;
+	}
+	
+	alert("Unknown value!");
+	return false;	
+	
+}

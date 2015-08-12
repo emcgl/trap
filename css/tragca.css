@@ -5,32 +5,49 @@
 }
 
 .message {
+	font-size: 20px;
 	color: green;
 }
 
 .warning {
+	font-size: 20px;
 	color: orange;
 }
 
 .error {
+	font-size: 20px;
 	color: red;
 }
 
-.menu {
+.item {
+	float: left;
 	font-weight: bold;
 	text-decoration: none;
 	background-color: white;
 	color: black;
-	margin: 10px;
-	padding: 1el;
+	margin: 2px;
+	padding: 30px;
+	border: 2px solid black;
+	
 }
 
-.menu:hover {
+.item:hover {
 	background-color: black;
 	color: white;
 }
 
-table, th, td {
+th, td {
 	border: 1px solid black;
 	text-align: left;
+	padding: 5px;
+}
+
+td {
+	color: black;
+	background-color: white;
+}
+
+th {
+	color: white;
+	background-color: black;
 }

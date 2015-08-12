@@ -10,7 +10,7 @@ include_once dirname(__FILE__)."/../classes/user.class.php";
 class Page {
 	
 	//Return link if user has access according to sitemap
-	static function link($page, $user="") {
+	static function link($page, $user="", $color="") {
 		
 		$key = array_search( $page, array_column(SiteMap::$Pages, 'name') );
 
@@ -21,7 +21,7 @@ class Page {
 		$pagedata = SiteMap::$Pages[$key];
 		
 		if(!isset($user) || $user=="" || $user->hasAccess($pagedata['level'])) {
-			return "<a class=\"menu\" href=\"/index.php?page=$page\">".$pagedata['title']."</a>";
+			return "<a class=\"item\" href=\"/index.php?page=$page\">".$pagedata['title']."</a>";
 		} else
 			return "";
 	}

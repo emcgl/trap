@@ -144,7 +144,7 @@ class User
 			throw new Exception("Something wrong with user database! Found more than one accounts with id.");
 		
 		if($count == 0)
-			return false;
+			throw new Exception("Could not find user with id $id.");
 		
 		$result = $stmt->fetch(PDO::FETCH_ASSOC);
 		
@@ -259,11 +259,14 @@ class User
 		return false;
 	}
 	
+	public function getId() {
+		return $this->id;
+	}
+	
 	public function isAdmin() {
 		return $this->hasAccess("admin");
 	}
-	
-	
+		
 	public function setAccess($level) {
 		
 		if(! isset(SiteMap::$UserLevels[$level]))
@@ -468,6 +471,7 @@ class User
 	} 
 	
 	public static function getIds() {
+				
 		$sql = "SELECT id FROM users ORDER BY id;";
 		
 		global $db;

@@ -1,4 +1,10 @@
+<?php 
+	include_once dirname(__FILE__)."/../includes/page.php";
+?>
 <h1>Transcriptomic Age Calculation Tool - Welcome!</h1>
-Please select:<br/>
-<a class="menu" href="/index.php?page=login">Login</a>
-<a class="menu" href="/index.php?page=register">Register</a>
+<div class="menu">
+<?php
+echo Page::link('login');
+echo Page::link('register'); 
+?>
+</div>

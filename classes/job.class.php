@@ -41,22 +41,17 @@ class Job {
 	private function Job($id, $uid, $name, $expressiontype, $expresionfile, $predictortype, $agefile, $status) {
 		$this->id=$id;
 		$this->uid=$uid;
-		$this->name=$name;
-		
+		$this->name=$name;		
 		$this->expressiontype=$expressiontype;
-
-		$this->expressionfile=$expresionfile;
-		
-		$this->predictortype=$predictortype;
-		
+		$this->expressionfile=$expresionfile;		
+		$this->predictortype=$predictortype;		
 		$this->agefile=$agefile;
-		$this->status=$status;
-		
+		$this->status=$status;		
 	}
 	
 	public static function define($uid, $name, $expressiontype, $expressionfile, $predictortype, $agefile) {
 			
-		//Have all tRaGcA param's?
+		//Have all job param's?
 		if(!isset($uid) || !isset($name) || !isset($expressiontype) || !isset($expressionfile) || !isset($predictortype) || !isset($agefile))
 			throw new InvalidArgumentException("Provide all parameters for new Job instance!");
 	
@@ -127,10 +122,10 @@ class Job {
 	
 		$id = $db->lastInsertId();
 	
-	
-		$job = new Job($id, $uid, $name, $expressiontype, $expresionfile, $predictortype, $agefile, $status);
-	
-		return $job;
+		error_log("Job should be inserted: $id");
+		
+		return new Job($id, $uid, $name, $expressiontype, $expressionfile, $predictortype, $agefile, $status);
+
 	}
 	
 	public static function retrieve($id) {
@@ -160,16 +155,54 @@ class Job {
 		$result = $stmt->fetch(PDO::FETCH_ASSOC);
 		
 		return new Job($result['id'], 
-						  $result['uid'], 
-				          $result['name'], 
-				          $result['expressiontype'], 
-				          $result['expresionfile'], 
-				          $result['predictortype'], 
-				          $result['agefile'], 
-				          $result['status']
-		); 
+					   $result['uid'], 
+				       $result['name'], 
+				       $result['expressiontype'], 
+				       $result['expressionfile'], 
+				       $result['predictortype'], 
+				       $result['agefile'], 
+				       $result['status']
+		); 	
+	}
+
+	public static function getIds($user) {
+	
+		global $db;
+		
+		$sql="";
+
+		if($user->isAdmin()) {
+			$sql = "SELECT id FROM jobs ORDER BY id;";
+		} else {
+			$sql = "SELECT id FROM jobs WHERE uid=:uid ORDER BY id;";
+		}
+		
+		$stmt = $db->prepare($sql);
+	
+		try {
+			if($user->isAdmin()) {
+				$stmt->bindParam(':uid', $user->getId());
+			}
+			$stmt->execute();
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error getting job!";
+		}
+	
+		$count = $stmt->rowCount();
+	
+		if($count == 0)
+			return false;
+	
+		$r=array();
+	
+		while($result = $stmt->fetch(PDO::FETCH_ASSOC))
+			$r[]=$result['id'];
+	
+		return $r;
 	
 	}
+	
 	
 	public function halt() {
 		if($this->status!="running")
@@ -188,7 +221,7 @@ class Job {
 		$sql = "UPDATE jobs SET status=:status WHERE id=:id";
 		try {
 			$stmt = $db->prepare($sql);
-			$stmt->bindParam(':status', "halt")
+			$stmt->bindParam(':status', "halt");
 			$stmt->bindParam(':id', $this->id);
 			$stmt->execute();
 			$this->status="halt";
@@ -198,7 +231,7 @@ class Job {
 			die();
 		}
 		
-		return;
+		return true;
 		
 	}
 
@@ -219,23 +252,28 @@ class Job {
 		if($this->status=="halt")
 			throw new Exception("The job is in process of halting, can't delete yet! Please wait for your job to be halted!");
 				
-		global $db;	
-				
-		$sql = "DELETE FROM jobs WHERE id=:id";
-		try {
-			$stmt = $db->prepare($sql);
-			$stmt->bindParam(':id', $this->id);
-			$stmt->execute();
-		} catch( PDOException $e) {
-			error_log ("Error: ".$e->getMessage());
-			print "Error deleting job!";
-			die();
-		}
-	
-		//Moving job folder to trash (maybe delete later)
-		rename(dirname(__FILE__)."/../data/users/$this->uid/$this->id", dirname(__FILE__)."/../data/trash/$this->uid/$this->id");
+		if($this->isFinished() || $this->isHalted()) {
 		
-		return;
+			global $db;	
+				
+			$sql = "DELETE FROM jobs WHERE id=:id";
+			try {
+				$stmt = $db->prepare($sql);
+				$stmt->bindParam(':id', $this->id);
+				$stmt->execute();
+			} catch( PDOException $e) {
+				error_log ("Error: ".$e->getMessage());
+				print "Error deleting job!";
+				die();
+			}
+	
+			//Moving job folder to trash (maybe delete later)
+			rename(dirname(__FILE__)."/../data/users/$this->uid/$this->id", dirname(__FILE__)."/../data/trash/$this->uid/$this->id");
+		} else {
+			throw new Exception("Only can delete finished or halted jobs!");
+		}
+		
+		return true;
 	
 	}
 
@@ -288,10 +326,10 @@ class Job {
 		if(!$edit) {
 				
 			$r.="<tr>";
-			$r.="<td>Id</td>";
+			$r.="<td>".$this->id."</td>";
 			
 			if($admin) {
-				$username = User::retrieveName($uid);
+				$username = User::retrieveName($this->uid);
 				$r.="<td>".$username."</td>";
 			}			
 			
@@ -308,29 +346,23 @@ class Job {
 			$r.="<td>".$this->id."</td>";
 			
 			if($admin) {
-				$username = User::retrieveName($uid);
+				$username = User::retrieveName($this->uid);
 				$r.="<td>".$username."</td>";
 			}
+			
 			$r.="<td>".$this->name."</td>";
 			$r.="<td>".Job::$expressiontypes[$this->expressiontype]."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->status."</td>";		
-			
-			
-			if($this->isRunning())
-				$r.="<td><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\"></td>";
-			else
-				$r.="<td></td>";
-			
-			if($this->isFinished())				
-				$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" \"></td>";
-			else
-				$r.="<td></td>";
+						
+			//if($this->isRunning())
+				$r.="<td><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\" ".($this->isRunning() ? "" : "disabled")."></td>";
+			//else
+				//$r.="<td>[Not Running]</td>";
+
+				$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : "disabled")."></td>";
 				
-			if($this->isFinished() || $this->isHalted())
-				$r.="<td><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure();\"></td>";		
-			else
-				$r.="<td></td>";
+				$r.="<td><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" ".( ($this->isFinished() || $this->isHalted()) ? "" : "disabled")."></td>";			
 				
 			return $r;
 		}
@@ -341,7 +373,6 @@ class Job {
 	public static function handle($requestdata) {
 	
 		foreach($requestdata as $name => $value)
-			//delete?
 			if(strncmp($name, "delete", 6)==0 && $value=="Delete") {
 	
 				$id=substr($name, 7, strlen($name)-7);
@@ -358,14 +389,12 @@ class Job {
 					$job->delete();
 					return $job;
 				} else {
-					throw new Exception("Deleting this job is not allowed or possible!");
+					throw new Exception("Deleting this job is not allowed or not possible!");
 				}
 			
-			} else
-				//halt?
-				if(strncmp($name, "halt", 6)==0 && $value=="Halt") {
+			} elseif(strncmp($name, "halt", 4)==0 && $value=="Halt") {
 	
-					$id=substr($name, 7, strlen($name)-7);
+					$id=substr($name, 5, strlen($name)-5);
 					echo "<div class=\"message\">Halting job with id $id</div><br/>".PHP_EOL;
 					
 					$job = Job::retrieve($id);
@@ -379,23 +408,82 @@ class Job {
 						$job->halt();
 						return $job;
 					} else {
-						throw new Exception("Halting this job is not allowed or possible!") 
-					}
-						
-				} else
-					//results
-					if($name=="results" && $value=="Results") {
-						echo "<div class=\"message\">Presenting job $id results!</div><br/>".PHP_EOL;
-						
-						//2do: Go to page or present results 
-	
-						return $job;
-					}
-										
-				return false;
-	}
+						throw new Exception("Halting this job is not allowed or possible!"); 
+					}								
+			} elseif(strncmp($name, "results", 7)==0 && $value=="Results") { 
+
+					$id=substr($name, 8, strlen($name)-8);
+
+					echo "<div class=\"message\">Showing results of job with id $id</div><br/>".PHP_EOL;
+					
+					$job = Job::retrieve($id);					
+					
+					return $job;
+			} elseif($name=="add" && $value=="Submit") {
 				
+					if(isset($_SESSION['user']))
+						$user=$_SESSION['user'];
+					else 
+						throw new Exception("Can't define new job, first login!");
+					
+					$uid = $user->getId();
+					
+					if(!$user->hasAccess("user"))
+						throw new Exception("Not enough rights to define job!");
+									
+					$name=$requestdata['name'];
+					$expressiontype=$requestdata['expressiontype'];
+					
+					if(!isset($_FILES['expressionfile']))
+						throw new Exception("Expression file not provided!");
+					else
+						$expressionfile=$_FILES['expressionfile']['tmp_name'];
+					
+					$predictortype=$requestdata['predictortype'];
+					
+					if($predictortype== "general") {
+						if(!isset($_FILES['agefile']))
+							throw new Exception("Age file not provided!");
+						else
+						$agefile=$_FILES['agefile']['tmp_name'];
+					} else {
+						$agefile="";
+					}
+					
+					$job = Job::define($uid, $name, $expressiontype, $expressionfile, $predictortype, $agefile);
+					
+					echo "<div class=\"message\">Job defined!</div><br/>".PHP_EOL;
+					
+					return $job;
+				} 
+				
+			return false;
+	}
 	
+	public static function form() {
+	
+		$r="";
+	
+		$r.="<table>".PHP_EOL;
+		$r.="<tr><th>Name</th><td><input id= \"name\" type=\"text\" name=\"name\" required/></td></tr>".PHP_EOL;
+		
+		$r.="<tr><th>Expression Type</th><td><select id=\"expressiontype\" name=\"expressiontype\" required>".PHP_EOL;
+		foreach(Job::$expressiontypes as $type => $name)
+			$r.="<option value=\"".$type."\">".$name."</option>".PHP_EOL;
+		$r.="</select></td></tr>".PHP_EOL;
+		$r.="<tr><th>Expression File</th><td><input type=\"file\" id=\"expressionfile\" name=\"expressionfile\" required></td></tr>".PHP_EOL;
+		$r.="<tr><th>Predictor Type</th><td><select id=\"predictortype\" name=\"predictortype\" onchange=\"needAgeFile();\" required>".PHP_EOL;
+		foreach(Job::$predictortypes as $type => $name)
+			$r.="<option value=\"".$type."\">".$name."</option>".PHP_EOL;
+		$r.="</select></td></tr>".PHP_EOL;
+		$r.="<tr><th>Age File</th><td><input type=\"file\" id=\"agefile\" name=\"agefile\" required></td></tr>".PHP_EOL;
+		$r.="</table>".PHP_EOL;
+		$r.="<br/>".PHP_EOL;
+		$r.="<input id=\"add\" name=\"add\" type=\"submit\" value=\"Submit\"><br/>".PHP_EOL;
+	
+		return $r;
+	}
 	
 	
 }
+			

@@ -49,13 +49,24 @@ class SiteMap {
 		//Administrate Users		
 		array(
 			'name' =>  "useradmin",
-			'title' => "Users Administration",				
+			'title' => "User Administration",				
 			'level' => "admin"
 		),
 		array(
 			'name'  => "adduser",
 			'title' => "Add User",
 			'level' => "admin"
+		),
+		//Administrate Jobs
+		array(
+			'name'  => "jobadmin",
+			'title' => "Job Administration",
+			'level' => "user"
+		),
+		array(
+			'name'  => "definejob",
+			'title' => "Define Job",
+			'level' => "user"
 		)
 	);
 
