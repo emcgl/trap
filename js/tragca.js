@@ -1,5 +1,5 @@
-function sure() {
-	return confirm("Are you sure?");
+function sure(text) {
+	return confirm(text);
 }
 
 function updateValue(id, newvalue) {

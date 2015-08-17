@@ -1,6 +1,7 @@
 <?php
 
 include_once dirname(__FILE__)."/../includes/database.php";
+include_once "uploadexception.class.php";
 
 //Transcriptomic Age Calculation Job
 class Job {
@@ -15,7 +16,6 @@ class Job {
 		"gene"=>"Gene"
 	);	
 	
-	
 	private $expressionfile;
 	
 	private $predictortype;
@@ -23,13 +23,13 @@ class Job {
 		"general"=>"General Predictor",
 		"scaled"=>"Scaled Predictor"
 	);
-	 
 	
 	private $agefile;
 	
 	private $status;
 
 	public static $statuses = array(
+			"defining",
 			"defined",
 			"running",
 			"halt",
@@ -50,7 +50,7 @@ class Job {
 	}
 	
 	public static function define($uid, $name, $expressiontype, $expressionfile, $predictortype, $agefile) {
-			
+				
 		//Have all job param's?
 		if(!isset($uid) || !isset($name) || !isset($expressiontype) || !isset($expressionfile) || !isset($predictortype) || !isset($agefile))
 			throw new InvalidArgumentException("Provide all parameters for new Job instance!");
@@ -97,11 +97,9 @@ class Job {
 		}
 		if($count > 0)
 			throw new InvalidArgumentException("Job with similar name already exists for this user! Please choose other name!");
-	
-		$id=-1;
-	
+
 		//File check stuff should become here!
-		$status="defined";
+		$status="defining";
 		
 		//Put job in database
 		$sql = "INSERT INTO jobs (uid, name, expressionfile, expressiontype, predictortype, agefile, status) VALUES (:uid, :name, :expressionfile, :expressiontype, :predictortype, :agefile, :status)";
@@ -119,10 +117,44 @@ class Job {
 			error_log ("Error: ".$e->getMessage());
 			die("Error inserting new job!");
 		}
-	
+		
 		$id = $db->lastInsertId();
-	
-		error_log("Job should be inserted: $id");
+		
+		//Creating job data folder
+		if(!mkdir(dirname(__FILE__)."/../data/users/$uid/$id")) 
+			die("<div class=\"error\">Error creating job data folder! Please inform administrator!</div>");
+			
+		//Check expression file & move
+		if(!isset($expressionfile) || $expressionfile=="")
+			throw new Exception("Can't locate expressionfile!");		
+						
+		if(!move_uploaded_file($expressionfile, dirname(__FILE__)."/../data/users/$uid/$id/expression.file"))
+			throw new Exception("Can't move expressionfile!");
+		
+		//If needed, check age file and move
+		if($predictortype=="general") {
+			if(!isset($agefile) || $agefile=="")
+				throw new Exception("Can't locate agefile!");
+			if(!move_uploaded_file($agefile, dirname(__FILE__)."/../data/users/$uid/$id/age.file"))
+				throw new Exception("Can't move agefile!");
+		} else {
+			$agefile="";
+		}
+		
+		//Set status to defined!
+		$status="defined";
+
+		//Put job in database
+		$sql = "UPDATE jobs SET status=:status WHERE id=:id";
+		try {
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam(':status', $status);
+			$stmt->bindParam(':id', $id);
+			$stmt->execute();
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			die("Error updating status of new job!");
+		}
 		
 		return new Job($id, $uid, $name, $expressiontype, $expressionfile, $predictortype, $agefile, $status);
 
@@ -169,14 +201,40 @@ class Job {
 	
 		global $db;
 		
-		$sql="";
-
-		if($user->isAdmin()) {
-			$sql = "SELECT id FROM jobs ORDER BY id;";
-		} else {
-			$sql = "SELECT id FROM jobs WHERE uid=:uid ORDER BY id;";
-		}
+		$sql = "SELECT id FROM jobs WHERE uid=:uid ORDER BY id;";
 		
+		$stmt = $db->prepare($sql);
+	
+		try {
+			$stmt->bindParam(':uid', $user->getId());
+			$stmt->execute();
+		} catch(PDOException $e) {
+			error_log ("Error: ".$e->getMessage());
+			print "Error getting job!";
+		}
+	
+		$count = $stmt->rowCount();
+	
+		if($count == 0)
+			return false;
+	
+		$r=array();
+	
+		while($result = $stmt->fetch(PDO::FETCH_ASSOC))
+			$r[]=$result['id'];
+	
+		return $r;
+	
+	}
+	public static function getAllIds($user) {
+	
+		global $db;
+	
+		if(!$user->isAdmin())
+			throw new Exception("Can't provide all ids! User not admin!");
+	
+		$sql = "SELECT id FROM jobs ORDER BY id;";
+	
 		$stmt = $db->prepare($sql);
 	
 		try {
@@ -245,6 +303,7 @@ class Job {
 		if(!($user->isAdmin() || $user->hasId($this->uid)))
 			throw new Exception("You don't have permission to delete this job!");
 		
+		//2do Mutex!! (depends on sheduling / background system - unable to delete defined is safe for now!)
 		if($this->status=="defined")
 			throw new Exception("Can't delete defined jobs! Please halt or wait for finish!");			
 		if($this->status=="running")
@@ -267,7 +326,9 @@ class Job {
 				die();
 			}
 	
-			//Moving job folder to trash (maybe delete later)
+			//Moving job folder to trash inside user folder(maybe delete later)
+			if(!file_exists(dirname(__FILE__)."/../data/trash/$this->uid"))
+				mkdir(dirname(__FILE__)."/../data/trash/$this->uid");
 			rename(dirname(__FILE__)."/../data/users/$this->uid/$this->id", dirname(__FILE__)."/../data/trash/$this->uid/$this->id");
 		} else {
 			throw new Exception("Only can delete finished or halted jobs!");
@@ -335,8 +396,8 @@ class Job {
 			
 			$r.="<td>".$this->name."</td>";
 			$r.="<td>".Job::$expressiontypes[$this->expressiontype]."</td>";
-			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
-			$r.="<td>".$this->status."</td>";								
+			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";			
+			$r.="<td>".$this->status."</td>";											
 			$r.="</tr>".PHP_EOL;
 				
 			return $r;
@@ -355,14 +416,9 @@ class Job {
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->status."</td>";		
 						
-			//if($this->isRunning())
-				$r.="<td><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\" ".($this->isRunning() ? "" : "disabled")."></td>";
-			//else
-				//$r.="<td>[Not Running]</td>";
-
-				$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : "disabled")."></td>";
-				
-				$r.="<td><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" ".( ($this->isFinished() || $this->isHalted()) ? "" : "disabled")."></td>";			
+			$r.="<td><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\" ".($this->isRunning() ? "" : "disabled")."></td>";
+			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : "disabled")."></td>";
+			$r.="<td><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure('Are you sure? Job will be deleted!');\"".( ($this->isFinished() || $this->isHalted()) ? "" : "disabled")."></td>";			
 				
 			return $r;
 		}
@@ -377,7 +433,7 @@ class Job {
 	
 				$id=substr($name, 7, strlen($name)-7);
 	
-				echo "<div class=\"message\">Deleting job with id $id</div><br/>".PHP_EOL;
+				echo "<div class=\"message\">Deleting job with id $id..</div><br/>".PHP_EOL;
 				$job = Job::retrieve($id);
 				
 				if(isset($_SESSION['user']))					
@@ -385,7 +441,7 @@ class Job {
 				else
 					throw new Exception("Need to login for this action!");
 				
-				if(($job->isFinished() || $job->isHalted()) && ($user->isAdmin() || $user->hasId($this->uid))) {				
+				if(($job->isFinished() || $job->isHalted()) && ($user->isAdmin() || $user->hasId($job->uid))) {				
 					$job->delete();
 					return $job;
 				} else {
@@ -419,7 +475,7 @@ class Job {
 					$job = Job::retrieve($id);					
 					
 					return $job;
-			} elseif($name=="add" && $value=="Submit") {
+			} elseif($name=="add" && $value=="Submit") {			
 				
 					if(isset($_SESSION['user']))
 						$user=$_SESSION['user'];
@@ -430,7 +486,10 @@ class Job {
 					
 					if(!$user->hasAccess("user"))
 						throw new Exception("Not enough rights to define job!");
-									
+
+					if($_FILES['expressionfile']['error'] != UPLOAD_ERR_OK)
+						throw new UploadException($_FILES['expressionfile']['error']);
+					
 					$name=$requestdata['name'];
 					$expressiontype=$requestdata['expressiontype'];
 					
@@ -441,10 +500,11 @@ class Job {
 					
 					$predictortype=$requestdata['predictortype'];
 					
-					if($predictortype== "general") {
-						if(!isset($_FILES['agefile']))
-							throw new Exception("Age file not provided!");
-						else
+					if($predictortype == "general") {
+						
+						if($_FILES['agefile']['error'] != UPLOAD_ERR_OK) 
+							throw new UploadException($_FILES['agefile']['error']);
+
 						$agefile=$_FILES['agefile']['tmp_name'];
 					} else {
 						$agefile="";

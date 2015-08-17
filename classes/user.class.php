@@ -1,5 +1,6 @@
 <?php
 
+include_once "job.class.php";
 include_once dirname(__FILE__)."/../includes/database.php";
 include_once dirname(__FILE__)."/../sitemap.php";
 
@@ -221,8 +222,26 @@ class User
 	
 	public function delete() {
 		
+		$jobids = Job::getIds($this);
+		
+		if(isset($jobids) && $jobids!=false) {
+
+			echo "<div class=\"warning\">Deleting user's jobs..</div><br/>".PHP_EOL;
+			
+			//Delete jobs
+			try {
+				foreach($jobids as $id)
+					$job=Job::retrieve($id);
+					$job->delete();
+			} catch(Exception $e) {
+				echo "<div class=\"error\">Error deleting account! Can't delete all user's jobs: ".$e->getMessage()."</div><br/>".PHP_EOL;
+				return; 
+			}
+		}
+		
 		global $db;
 		
+		//Delete user
 		$sql = "DELETE FROM users WHERE id=:id";
 		try {
 			$stmt = $db->prepare($sql);
@@ -234,10 +253,10 @@ class User
 			die();
 		}
 		
-		//Moving user folder to trash (maybe delete later)
-		rename(dirname(__FILE__)."/../data/users/$this->id", dirname(__FILE__)."/../data/trash/$this->id");
-
-		return;
+		if(rmdir(dirname(__FILE__)."/../data/users/$this->id"))
+			return true;
+		else 
+			return false;
 				
 	}
 	
@@ -391,7 +410,13 @@ class User
 		
 		//Make table row with form to adjust user data
 		if($edit) {
-		
+
+			//Can't edit current user!
+			$loggedin=false;			
+			
+			if(isset($_SESSION['user']) && $_SESSION['user']->getId() == $this->getId() ) 
+				$loggedin=true;
+						
 			$r= "<tr>";
 			$r.="<td>".$this->id."</td>";
 			$r.="<td><input id=\"name_".$this->id."\" name=\"name_".$this->id."\" type=\"text\" value=\"".$this->name."\"></td>";
@@ -402,8 +427,8 @@ class User
 			}
 			$r.="</select>".PHP_EOL;
 			$r.="<td><input id=\"email_".$this->id."\" name=\"email_".$this->id."\" type=\"text\" value=\"".$this->email."\"></td>".PHP_EOL;
-			$r.="<td><input id=\"update_".$this->id."\" name=\"update_".$this->id."\" type=\"submit\" value=\"Update\"></td>";
-			$r.="<td><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure();\"></td>";
+			$r.="<td><input id=\"update_".$this->id."\" name=\"update_".$this->id."\" type=\"submit\" value=\"Update\" ".($loggedin ? "disabled" : "")."></td>";
+			$r.="<td><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure('Are you sure? User and jobs will be deleted!');\" ".($loggedin ? "disabled" : "")."></td>";
 			
 			return $r;
 		}
@@ -419,7 +444,10 @@ class User
 				
 				$id=substr($name, 7, strlen($name)-7);											
 
-				echo "<div class=\"message\">Deleting user with id $id</div><br/>".PHP_EOL;
+				if(isset($_SESSION['user']) && $_SESSION['user']->getId() == $id)
+					throw new Exception("Can't delete current user!");
+				
+				echo "<div class=\"message\">Deleting user with id $id..</div><br/>".PHP_EOL;
 				$user = User::retrieve($id);								
 				$user->delete();				
 				return $user;
@@ -428,9 +456,14 @@ class User
 			if(strncmp($name, "update", 6)==0 && $value=="Update") {
 				
 				$id=substr($name, 7, strlen($name)-7);
-				echo "<div class=\"message\">Updating user with id $id</div><br/>".PHP_EOL;
-				$user = User::retrieve($id);
 
+				if(isset($_SESSION['user']) && $_SESSION['user']->getId() == $id)
+					throw new Exception("Can't update current user!");
+				
+				echo "<div class=\"message\">Updating user with id $id</div><br/>".PHP_EOL;
+
+				$user = User::retrieve($id);
+				
 				$name=$requestdata['name_'.$id];
 				$password=$requestdata['password_'.$id];
 				$level = array_search($requestdata['nlevel_'.$id], SiteMap::$UserLevels);
@@ -449,10 +482,15 @@ class User
 				$email=$requestdata['email'];
 		
 				echo "<div class=\"message\">Adding user $name</div><br/>".PHP_EOL;
+				try {
+					$user = User::create($name, $password, $level, $email);
+					return $user;
+				} catch(Exception $e) {
+					echo "<div class=\"error\">Problem: ".$e->getMessage()."</div>".PHP_EOL;
+				} 
 
-				$user = User::create($name, $password, $level, $email);
+				return false;
 				
-				return $user;
 			} else
 			//register
 			if($name=="register" && $value=="Register") {

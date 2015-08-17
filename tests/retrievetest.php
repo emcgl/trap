@@ -17,6 +17,7 @@
 		$edit=true; 
 	}
 	
+	//Won't work! Needs user!
 	$ids = User::getIds();
 		
 	echo "<form action=\"/retrievetest.php\" method=\"POST\">".PHP_EOL;

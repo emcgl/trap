@@ -21,8 +21,15 @@ include_once dirname(__FILE__)."/../includes/page.php";
 		$edit=true; 
 	}
 	
-	if(!$ids = Job::getIds($currentuser)) {
-		echo "<div class=\"message\">No jobs available for you!</div>".PHP_EOL;
+	$ids="";
+	if($user->isAdmin())
+		$ids=Job::getAllIds($currentuser);
+	else 
+		$ids=Job::getIds($currentuser);
+	
+	if($ids==false) {
+		
+		echo "<div class=\"message\">No (more) jobs available for you!</div>".PHP_EOL;
  		
 	} else {
 		

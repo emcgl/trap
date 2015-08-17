@@ -26,8 +26,6 @@
 	echo "<table>".PHP_EOL;
 	echo User::tableHeader($edit=$edit);
 	foreach($ids as $id) {
-		if($currentuser->hasId($id)) //Don't show current user!
-			continue;
 		$user = User::retrieve($id);	
 		echo $user->tableData($edit=$edit);
 		unset($user);
