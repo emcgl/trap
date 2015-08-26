@@ -55,5 +55,14 @@ include_once dirname(__FILE__)."/../includes/page.php";
 	echo Page::link('main', $currentuser);
 	echo Page::link('logout', $currentuser);
 	
+	#Automatically reload page
+	echo "<script type=\"text/javascript\">".PHP_EOL;
+	echo "setTimeout(function(){".PHP_EOL;
+	echo "  window.location.reload(1);".PHP_EOL;
+	echo "}, 10000);".PHP_EOL;
+	echo "</script>".PHP_EOL;
+	
+	
+	
 ?>
 
