@@ -1,6 +1,7 @@
 <?php
 
 include_once dirname(__FILE__)."/../includes/database.php";
+include_once dirname(__FILE__)."/user.class.php";
 include_once "uploadexception.class.php";
 
 //Transcriptomic Age Calculation Job
@@ -268,6 +269,13 @@ class Job {
 	
 	}
 	
+	public function isOwnedBy($user) {
+		
+		if($user->hasId($this->uid)) return true;
+		else return false;
+		
+	}
+
 	
 	public function halt() {
 		if($this->status!="scheduled" && $this->status!="running")
@@ -489,12 +497,14 @@ class Job {
 					}								
 			} elseif(strncmp($name, "results", 7)==0 && $value=="Results") { 
 
-					$id=substr($name, 8, strlen($name)-8);
+					$id=substr($name, 8, strlen($name)-8);		
+					
+					$job = Job::retrieve($id);
+					
+					echo "<div class=\"message\">Download results of job '".$job->name."' with id ".$job->id."</div><br/>".PHP_EOL;
 
-					echo "<div class=\"message\">Showing results of job with id $id</div><br/>".PHP_EOL;
-					
-					$job = Job::retrieve($id);					
-					
+					echo "<a href=/index.php?download=job&uid=$job->uid&jid=$job->id>Click here to download</a>";
+										
 					return $job;
 			} elseif($name=="add" && $value=="Submit") {			
 				
@@ -563,6 +573,30 @@ class Job {
 		$r.="<input id=\"add\" name=\"add\" type=\"submit\" value=\"Submit\"><br/>".PHP_EOL;
 	
 		return $r;
+	}
+	
+	public function retrieveOutput() {
+		
+		$filename = "output.".($this->predictortype == 'general' ? 'general' : 'scaled'  ).".".$this->id.".txt";
+		
+		error_log($filename);
+		
+		$file = dirname(__FILE__)."/../data/users/$this->uid/$this->id/$filename";
+
+		error_log($file);
+		
+		if(!file_exists($file)) { die ("Output file does not exist!"); }
+			
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename="'.basename($file).'"');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
+		header('Content-Length: ' . filesize($file));
+		readfile($file);
+		exit;
+	
 	}
 	
 	
