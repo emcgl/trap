@@ -503,7 +503,11 @@ class Job {
 					
 					echo "<div class=\"message\">Download results of job '".$job->name."' with id ".$job->id."</div><br/>".PHP_EOL;
 
-					echo "<a href=/index.php?download=job&uid=$job->uid&jid=$job->id>Click here to download</a>";
+					#echo "<a href=/index.php?download=job&uid=$job->uid&jid=$job->id>Click here to download</a>";
+					
+					echo "<script type=\"text/javascript\">".PHP_EOL;
+					echo "window.location = \"/index.php?download=job&uid=$job->uid&jid=$job->id\";".PHP_EOL;
+					echo "</script>";
 										
 					return $job;
 			} elseif($name=="add" && $value=="Submit") {			
