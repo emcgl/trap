@@ -31,11 +31,11 @@ class Job {
 	public static $statuses = array(
 			"defining",
 			"defined",
+			"scheduled",
 			"running",
 			"halt",
 			"finished",
 			"halted"
-			
 	);
 		
 	private function Job($id, $uid, $name, $expressiontype, $expresionfile, $predictortype, $agefile, $status) {
@@ -124,18 +124,25 @@ class Job {
 		if(!mkdir(dirname(__FILE__)."/../data/users/$uid/$id")) 
 			die("<div class=\"error\">Error creating job data folder! Please inform administrator!</div>");
 			
-		//Check expression file & move
+
+		//From files from $_FILES!
+		if(!isset($_FILES) || !isset($_FILES['expressionfile']) || !isset($_FILES['agefile']))
+			throw new Exception("Can't find uploaded files!");
+		
+		$tmpexpressionfile=$_FILES['expressionfile']['tmp_name'];
+		$tmpagefile=$_FILES['agefile']['tmp_name'];
+		
 		if(!isset($expressionfile) || $expressionfile=="")
 			throw new Exception("Can't locate expressionfile!");		
-						
-		if(!move_uploaded_file($expressionfile, dirname(__FILE__)."/../data/users/$uid/$id/expression.file"))
+								
+		if(!move_uploaded_file($tmpexpressionfile, dirname(__FILE__)."/../data/users/$uid/$id/expression.file"))
 			throw new Exception("Can't move expressionfile!");
 		
-		//If needed, check age file and move
+		//If needed, check age file and le move
 		if($predictortype=="general") {
-			if(!isset($agefile) || $agefile=="")
+			if(!isset($tmpagefile) || $tmpagefile=="")
 				throw new Exception("Can't locate agefile!");
-			if(!move_uploaded_file($agefile, dirname(__FILE__)."/../data/users/$uid/$id/age.file"))
+			if(!move_uploaded_file($tmpagefile, dirname(__FILE__)."/../data/users/$uid/$id/age.file"))
 				throw new Exception("Can't move agefile!");
 		} else {
 			$agefile="";
@@ -263,8 +270,8 @@ class Job {
 	
 	
 	public function halt() {
-		if($this->status!="running")
-			throw new Exception("Can't halt job that is not running!");
+		if($this->status!="scheduled" && $this->status!="running")
+			throw new Exception("Can't halt job that is neither scheduled or running!");
 		
 		if(isset($_SESSION['user']))
 			$user=$_SESSION['user'];
@@ -306,6 +313,8 @@ class Job {
 		//2do Mutex!! (depends on sheduling / background system - unable to delete defined is safe for now!)
 		if($this->status=="defined")
 			throw new Exception("Can't delete defined jobs! Please halt or wait for finish!");			
+		if($this->status=="scheduled")
+			throw new Exception("Can't delete scheduled jobs! Please halt or wait for finish!");				
 		if($this->status=="running")
 			throw new Exception("Can't delete running jobs! Please halt or wait for finish!");
 		if($this->status=="halt")
@@ -338,11 +347,19 @@ class Job {
 	
 	}
 
+	
+	public function isScheduled() {
+		if($this->status=="scheduled")
+			return true;
+		return false;
+	}
+	
 	public function isRunning() {
 		if($this->status=="running")
 			return true;
 		return false;
 	}
+	
 	public function isFinished() {
 		if($this->status=="finished")
 			return true;
@@ -364,7 +381,7 @@ class Job {
 		if($admin)		
 			$r.="<th>User</th>";
 			
-		$r.="<th>Job Name</th><th>Expression Type</th><th>Predictor Type</th><th>Status</th>";
+		$r.="<th>Job Name</th><th>Expression Type</th><th>Expression File</th><th>Predictor Type</th><th>Age File</th><th>Status</th>";
 	
 		if($edit) {
 			$r.="<th>Halt</th>";				
@@ -396,7 +413,9 @@ class Job {
 			
 			$r.="<td>".$this->name."</td>";
 			$r.="<td>".Job::$expressiontypes[$this->expressiontype]."</td>";
-			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";			
+			$r.="<td>".$this->expressionfile."</td>";
+			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
+			$r.="<td>".$this->agefile."</td>";
 			$r.="<td>".$this->status."</td>";											
 			$r.="</tr>".PHP_EOL;
 				
@@ -413,7 +432,9 @@ class Job {
 			
 			$r.="<td>".$this->name."</td>";
 			$r.="<td>".Job::$expressiontypes[$this->expressiontype]."</td>";
+			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
+			$r.="<td>".$this->agefile."</td>";
 			$r.="<td>".$this->status."</td>";		
 						
 			$r.="<td><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\" ".($this->isRunning() ? "" : "disabled")."></td>";
@@ -496,7 +517,7 @@ class Job {
 					if(!isset($_FILES['expressionfile']))
 						throw new Exception("Expression file not provided!");
 					else
-						$expressionfile=$_FILES['expressionfile']['tmp_name'];
+						$expressionfile=$_FILES['expressionfile']['name'];
 					
 					$predictortype=$requestdata['predictortype'];
 					
@@ -505,7 +526,7 @@ class Job {
 						if($_FILES['agefile']['error'] != UPLOAD_ERR_OK) 
 							throw new UploadException($_FILES['agefile']['error']);
 
-						$agefile=$_FILES['agefile']['tmp_name'];
+						$agefile=$_FILES['agefile']['name'];
 					} else {
 						$agefile="";
 					}
