@@ -395,6 +395,8 @@ class Job {
 			$r.="<th>Halt</th>";				
 			$r.="<th>Results</th>";
 			$r.="<th>Delete</th>";
+		}else{
+			$r.="<th>Results</th>";
 		}
 			
 		$r.="</tr>".PHP_EOL;
@@ -424,7 +426,8 @@ class Job {
 			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->agefile."</td>";
-			$r.="<td>".$this->status."</td>";											
+			$r.="<td>".$this->status."</td>";
+			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : "disabled")."></td>";
 			$r.="</tr>".PHP_EOL;
 				
 			return $r;
