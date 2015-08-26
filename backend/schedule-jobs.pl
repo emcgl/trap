@@ -115,10 +115,11 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 		my $rows_affected = $dbh->do($sql2);
 		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
 		
+			print "finished!\n";
+		
+	} else {
+		print "not finished!\n";
 	}
-	
-	print "finished!\n;"
-	
 }
 
 

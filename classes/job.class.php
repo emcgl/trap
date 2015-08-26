@@ -497,13 +497,22 @@ class Job {
 					}								
 			} elseif(strncmp($name, "results", 7)==0 && $value=="Results") { 
 
+					$user=null;
+				
+					if(isset($_SESSION['user']))
+						$user=$_SESSION['user'];
+					else
+						throw new Exception("Can't download new job, first login!");
+				
 					$id=substr($name, 8, strlen($name)-8);		
 					
 					$job = Job::retrieve($id);
 					
 					echo "<div class=\"message\">Download results of job '".$job->name."' with id ".$job->id."</div><br/>".PHP_EOL;
 
-					#echo "<a href=/index.php?download=job&uid=$job->uid&jid=$job->id>Click here to download</a>";
+					echo "<br/><div><a href=\"/index.php?download&uid=$job->uid&jid=$job->id\">If download won't start automatically, click here!</a></div><br/>".PHP_EOL;
+					
+					echo Page::link("main", $user);
 					
 					echo "<script type=\"text/javascript\">".PHP_EOL;
 					echo "window.location = \"/index.php?download=job&uid=$job->uid&jid=$job->id\";".PHP_EOL;

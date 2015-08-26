@@ -22,5 +22,5 @@ cd $userdata/$uid/$id;
 ${qsub} ${Rscript} ${backend}/${rscript} expressionfile=${expressionfile} \
 										 agefile=${agefile} \
 										 formula=${backend}/${formulafile} \
-										 outputtxt=$outputtxt;
+										 outputtxt=${outputtxt};
 		
