@@ -3,7 +3,6 @@
 use strict;
 use DBI;
 
-
 #Config Variables
 my $userdata="/home/marijn/workspace/tragca/data/users";
 
@@ -16,15 +15,17 @@ my $DBPassword              = "tr12321ca";
 my $id="";
 my $uid="";
 my $name="";
-#my $expressionfile="expression.file";
 my $expressionfile="";
-#my $expressiontype="illumina"; 
 my $expressiontype="";
-#my $predictortype="general";
-my $predictortype="general";
-#my $agefile="age.file";
+my $predictortype="";
 my $agefile="";
 my $status="";
+
+#SGEInfo Variables
+my $sgeid;
+my $errornr;
+my $outputnr;
+
 
 my $dbh = DBI->connect("DBI:mysql:$DBName;localhost;port=3306","$DBUserName","$DBPassword", {'RaiseError' => 0}) or die "Cannot connect to database!\n";
 
@@ -55,8 +56,105 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	scheduleJob();	
 }
 
+#
+# Iterate all scheduled jobs, see if they are running!
+#
+
+print "Check 'scheduled' jobs jobs!\n";
+
+$sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='scheduled'";
+$sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
+$rc = $sth->execute or die "Can't execute statement!";
+
+while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
+
+	print "Analysing scheduled job ".$id."..";
+	
+	my $errornr=0;
+	my $outputnr=0;
+	
+	$sgeid = recoverSGEID();
+	
+	if($sgeid gt 0) {
+		
+		print "has gridengine job nr: ".$sgeid."..";
+		
+		#Update Database entry to running!
+		my $sql2 = "UPDATE jobs SET status = 'running' WHERE id=".$dbh->quote($id);		
+		my $rows_affected = $dbh->do($sql2);
+		$rows_affected == 1 or die "db entry not found, not able to update status!",$id;
+	} else { 
+		print "no output (yet!)..\n";
+	}
+}
+
+#
+# Iterate all running jobs, see if they are ready!
+#
+
+print "Check 'running' jobs!\n";
+
+$sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='running'";
+$sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
+$rc = $sth->execute or die "Can't execute statement!";
+
+while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
+
+	print "Analysing running job ".$id."..";
+
+	#Is there a result file?
+	my $outputtxt="";
+	if($predictortype eq "scaled"){ $outputtxt = "output.scaled.".$id.".txt";}	
+	elsif($predictortype eq "general") { $outputtxt = "output.general.".$id.".txt";}
+	else { die "Unknown predictortype:".$predictortype."\n";}
+		
+	if( -e $userdata."/".$uid."/".$id."/".$outputtxt ) {
+		
+		#Update Database entry to finished!
+		my $sql2 = "UPDATE jobs SET status = 'finished' WHERE id=".$dbh->quote($id);		
+		my $rows_affected = $dbh->do($sql2);
+		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
+		
+	}
+	
+	print "finished!\n;"
+	
+}
+
+
+#
+# Iterate all to-halt jobs!
+#
+
+print "Check 'halt' jobs!\n";
+
+$sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='halt'";
+$sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
+$rc = $sth->execute or die "Can't execute statement!";
+
+while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
+
+	print "Halting job ".$id."..";
+
+	$sgeid = recoverSGEID();
+	
+	if($sgeid == 0) {
+		die("Can't find SGE id for 'halt' job ".$id."..should have output and error file\n");
+	}
+
+	#Update Database entry to finished!
+	my $sql2 = "UPDATE jobs SET status = 'halted' WHERE id=".$dbh->quote($id);		
+	my $rows_affected = $dbh->do($sql2);
+	$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
+	
+	cancelJob();
+	
+}	
+
+
 $dbh->disconnect();
 
+print "Done!\n";
 
 exit(1);
 
@@ -127,3 +225,41 @@ sub scheduleJob {
 system(@args) == 0 or die "system @args failed: $?";
 
 }
+
+sub recoverSGEID {
+
+	$errornr=0;
+	$outputnr=0;
+
+	opendir(DIR, $userdata."/".$uid."/".$id );
+	my @files = readdir DIR;
+	foreach my $file (@files)
+	{
+		#Skip . .. and search barcode dirs
+		if($file eq "."){next};
+		if($file eq ".."){next};
+		if($file !~ "Rscript"){next};
+		
+		$file =~ /Rscript\.([e|o])(\d*)/;
+
+		if($1 eq 'e') {
+			$errornr=$2;
+		} elsif($1 eq 'o'){
+			$outputnr=$2;
+		} else {
+			die("Found a strange grid engine Rscript output file:".$file."\n")
+		}
+	}
+		if($errornr!=$outputnr) { die "Found different grid engine jobs outputs: ".$errornr.", and ".$outputnr.".\n"};
+	
+	return $errornr;
+}
+
+sub cancelJob {
+		my @args="";
+
+	  	@args = ( "./halt.sh",
+	  			  $sgeid);
+
+		system(@args) == 0 or die "system @args failed: $?";
+}	
