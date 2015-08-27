@@ -291,10 +291,13 @@ class Job {
 
 		global $db;
 		
+		//Set status to halt!
+		$status="halt";
+		
 		$sql = "UPDATE jobs SET status=:status WHERE id=:id";
 		try {
 			$stmt = $db->prepare($sql);
-			$stmt->bindParam(':status', "halt");
+			$stmt->bindParam(':status', $status);
 			$stmt->bindParam(':id', $this->id);
 			$stmt->execute();
 			$this->status="halt";
@@ -426,7 +429,7 @@ class Job {
 			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->agefile."</td>";
-			$r.="<td>".$this->status."</td>";
+			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>";
 			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : "disabled")."></td>";
 			$r.="</tr>".PHP_EOL;
 				
@@ -446,7 +449,7 @@ class Job {
 			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->agefile."</td>";
-			$r.="<td>".$this->status."</td>";		
+			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>";		
 						
 			$r.="<td><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\" ".($this->isRunning() ? "" : "disabled")."></td>";
 			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : "disabled")."></td>";
@@ -492,7 +495,7 @@ class Job {
 					else 
 						throw new Exception("Need to login for this action!");
 	
-					if($job->isRunning() && ($user->isAdmin() || $user->hasId($this->uid()) ) ) {
+					if($job->isRunning() && ($user->isAdmin() || $user->hasId($job->uid )) ) {
 						$job->halt();
 						return $job;
 					} else {
