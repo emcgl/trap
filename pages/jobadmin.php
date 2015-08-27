@@ -51,18 +51,18 @@ include_once dirname(__FILE__)."/../includes/page.php";
 	
 		echo "</form>".PHP_EOL;
 	}
+	
 	echo "<br/>".PHP_EOL;
 	echo Page::link('main', $currentuser);
 	echo Page::link('logout', $currentuser);
-	
+	echo PHP_EOL;
+
 	#Automatically reload page
 	echo "<script type=\"text/javascript\">".PHP_EOL;
 	echo "setTimeout(function(){".PHP_EOL;
-	echo "  window.location.reload(1);".PHP_EOL;
+	echo "  window.location.href=\"/index.php?page=jobadmin&edit=true\"; ".PHP_EOL;
 	echo "}, 10000);".PHP_EOL;
 	echo "</script>".PHP_EOL;
-	
-	
 	
 ?>
 
