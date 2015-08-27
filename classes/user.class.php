@@ -106,7 +106,10 @@ class User
 				return false;
 				
 			$result = $stmt->fetch(PDO::FETCH_ASSOC);
-				
+			
+			if($result['nlevel']<50) 
+				throw new Exception("User doesn't have correct access level (is the user verified?)");
+			
 			if( password_verify($password, $result['password']) ) {
 				return new User( $result['id'],
 						$result['name'],
