@@ -3,6 +3,7 @@
 include_once "job.class.php";
 include_once dirname(__FILE__)."/../includes/database.php";
 include_once dirname(__FILE__)."/../sitemap.php";
+include_once dirname(__FILE__)."/../config.php";
 
 class User
 {		
@@ -72,9 +73,11 @@ class User
 		}
 		
 		$id = $db->lastInsertId();
-		
+	
+		global $datafolder;
+	
 		//Creating user data folder
-		if(!mkdir(dirname(__FILE__)."/../data/users/$id")) {
+		if(!mkdir("$datafolder/users/$id")) {
 			error_log("User $id may is in db but doesn't have data folder!");
 			die("Error creating user data folder!");
 		}
@@ -252,8 +255,10 @@ class User
 			print "Error deleting user!";
 			die();
 		}
-		
-		if(rmdir(dirname(__FILE__)."/../data/users/$this->id"))
+	
+		global $datafolder;
+	
+		if(rmdir("$datafolder/users/$this->id"))
 			return true;
 		else 
 			return false;

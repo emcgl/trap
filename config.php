@@ -1,13 +1,16 @@
 <?php
 
 //PDO Database Settings
-$dbuser =   "tragca";
-$dbpasswd = "tr12321ca";
+$dbuser =   "trap";
+$dbpasswd = "XXXXXXXX";
 $dbdriver = "mysql";
 $dbhost =   "localhost";
-$dbname =   "tragca";		
+$dbname =   "trap";	
 
 //EMail
 $from		= "m.verkerk@erasmusmc.nl";
 
+
+//Folder locations
+$datafolder	= "/trap/data";
 ?>

@@ -1,6 +1,7 @@
 <?php
 
 include_once dirname(__FILE__)."/../includes/database.php";
+include_once dirname(__FILE__)."/../config.php";
 include_once dirname(__FILE__)."/user.class.php";
 include_once "uploadexception.class.php";
 
@@ -120,9 +121,11 @@ class Job {
 		}
 		
 		$id = $db->lastInsertId();
-		
+	
+		global $datafolder;
+	
 		//Creating job data folder
-		if(!mkdir(dirname(__FILE__)."/../data/users/$uid/$id")) 
+		if(!mkdir("$datafolder/users/$uid/$id")) 
 			die("<div class=\"error\">Error creating job data folder! Please inform administrator!</div>");
 			
 
@@ -136,14 +139,14 @@ class Job {
 		if(!isset($expressionfile) || $expressionfile=="")
 			throw new Exception("Can't locate expressionfile!");		
 								
-		if(!move_uploaded_file($tmpexpressionfile, dirname(__FILE__)."/../data/users/$uid/$id/expression.file"))
+		if(!move_uploaded_file($tmpexpressionfile, "$datafolder/users/$uid/$id/expression.file"))
 			throw new Exception("Can't move expressionfile!");
 		
 		//If needed, check age file and le move
 		if($predictortype=="general") {
 			if(!isset($tmpagefile) || $tmpagefile=="")
 				throw new Exception("Can't locate agefile!");
-			if(!move_uploaded_file($tmpagefile, dirname(__FILE__)."/../data/users/$uid/$id/age.file"))
+			if(!move_uploaded_file($tmpagefile, "$datafolder/users/$uid/$id/age.file"))
 				throw new Exception("Can't move agefile!");
 		} else {
 			$agefile="";
@@ -345,11 +348,13 @@ class Job {
 				print "Error deleting job!";
 				die();
 			}
+
+			global $datafolder;
 	
 			//Moving job folder to trash inside user folder(maybe delete later)
-			if(!file_exists(dirname(__FILE__)."/../data/trash/$this->uid"))
-				mkdir(dirname(__FILE__)."/../data/trash/$this->uid");
-			rename(dirname(__FILE__)."/../data/users/$this->uid/$this->id", dirname(__FILE__)."/../data/trash/$this->uid/$this->id");
+			if(!file_exists("$datafolder/trash/$this->uid"))
+				mkdir("$datafolder/trash/$this->uid");
+			rename("$datafolder/users/$this->uid/$this->id", "$datafolder/trash/$this->uid/$this->id");
 		} else {
 			throw new Exception("Only can delete finished or halted jobs!");
 		}
@@ -597,12 +602,10 @@ class Job {
 	public function retrieveOutput() {
 		
 		$filename = "output.".($this->predictortype == 'general' ? 'general' : 'scaled'  ).".".$this->id.".txt";
+	
+		global $datafolder;
 		
-		error_log($filename);
-		
-		$file = dirname(__FILE__)."/../data/users/$this->uid/$this->id/$filename";
-
-		error_log($file);
+		$file = "$datafolder/users/$this->uid/$this->id/$filename";
 		
 		if(!file_exists($file)) { die ("Output file does not exist!"); }
 			
