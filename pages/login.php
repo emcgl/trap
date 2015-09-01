@@ -1,4 +1,3 @@
-<h1>Transcriptomic Age Calculation Tool - Login</h1>
 <?php 
 
 include_once dirname(__FILE__)."/../classes/user.class.php";
@@ -11,6 +10,8 @@ if(!isset($_SESSION['loginattempts'])) {
 
 //Handle login
 if( isset($_POST['name']) && isset($_POST['password'])) {
+	
+	echo "<div class=\"view\">".PHP_EOL;
 		
 	$_SESSION['loginattempts']++;	
 	if($_SESSION['loginattempts'] > 3) {
@@ -30,25 +31,29 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 			$_SESSION['user']=$user;
 			unset($_SESSION['loginattempts']);
 			echo "<div class=\"message\">Welcome!</div><br/>".PHP_EOL;
+			echo "<div class=\"menu\">".PHP_EOL;
 			echo Page::link('main', $user);
 			echo Page::link('logout', $user); 
+			echo "</div>".PHP_EOL;
 			return;
 		} else {
 			throw new Exception("Unexpected user class name!");
 		}
 	}
+	echo "</div>".PHP_EOL;	
 } 
 
 ?>
-
-<h2>Please provide your credentials:</h2>
-<form action="/index.php?page=login" method="POST">
-<div class="formlabel">Name:</div>
-<input type="text" name="name" />
-<br/>
-<div class="formlabel">Password:</div>
-<input type="password" name="password" />
-<br/>
-<br/>
-<input type="submit" value="Submit">
-</form>
+<div class="view">
+	<h2>Please provide your credentials:</h2>
+	<form action="/index.php?page=login" method="POST">
+	<div class="formlabel">Name:</div>
+	<input type="text" name="name" />
+	<br/>
+	<div class="formlabel">Password:</div>
+	<input type="password" name="password" />
+	<br/>
+	<br/>
+	<input type="submit" value="Submit">
+	</form>
+</div>

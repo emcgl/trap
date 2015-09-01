@@ -1,22 +1,73 @@
 @CHARSET "UTF-8";
 
-.formlabel {
-	width: 12el;
+#page {
+	width: 1000px;
+	border-style: none;
+	border-color: transparent;
+	padding-bottom: 0px;
+	margin-left: auto;
+	margin-right: auto;		
+	font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+}
+
+#top {
+	background-image: url('/images/website-boven.png');
+    background-repeat: no-repeat;
+    background-position: center top;
+	width: 1000px;
+	height: 261px;	
+}
+
+#toptitle {
+	background-color: 2a2525;
+	color: white;
+	text-align: center;
+	width: 1000px;
+	height: 261px;
+	font-size: 36px;
+}
+
+#content {
+	background-image: url('/images/website-midden.gif');
+    background-repeat: no-repeat;
+    background-position: center top;
+	width: 1000px;
+	height: 1293px;
+	margin: 0px;
+	padding: 0px;
+	color: lightgrey;
 }
 
 .message {
+	background-color: white;
 	font-size: 20px;
 	color: green;
+	display:inline-block;
+	border: 1px solid black;	
 }
 
 .warning {
+	background-color: white;
 	font-size: 20px;
 	color: orange;
+	display:inline-block;
+	border: 1px solid black;	
 }
 
 .error {
+	background-color: white;
 	font-size: 20px;
 	color: red;
+	display:inline-block;
+	border: 1px solid black;
+}
+
+.menu {
+	padding: 25px
+}
+
+.view {
+	padding: 25px;
 }
 
 .item {
@@ -34,6 +85,23 @@
 .item:hover {
 	background-color: black;
 	color: white;
+}
+
+h2 {
+	background-color: white;
+	color: black;
+	border: 1px solid black;
+	width: auto;
+	display:inline-block;
+}
+
+.formlabel {
+	background-color: white;
+	color: black;
+	border: 1px solid black;
+	wdith: 12el;
+	margin-top: 5px;
+	display:inline-block;	
 }
 
 th, td {

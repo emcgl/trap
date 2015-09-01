@@ -7,24 +7,14 @@ include_once "Mail.php";
 include_once "Mail/mime.php";
 
 $warning=null;
-
-?>
-<h1>Transcriptomic Age Calculation Tool - Register</h1>
-
-<?php 
+echo "<div class=\"view\">".PHP_EOL;
 if( isset($_POST) && $user=User::handle($_POST)) {
-
 		$user->update($name="", $password="", $level="unvalidated", $email="");	
-
 		$recipients=$_POST['email'];
-		
 		$simplehash = $user->generateValidationCode();						
-		
 ?>
-
 <h2 class="message">Thanks for providing your personal data!</h2>
 <p>A message will be send to the specified email address. Please follow the provided link in order to verify your email and activate your account!<p>
-
 <?php
 	global $from, $smtp; 			
 	
@@ -82,3 +72,4 @@ if( isset($_POST) && $user=User::handle($_POST)) {
 echo User::form($level=false,$submitid="register",$submitvalue="Register");
 ?>
 </form>
+</div>

@@ -4,11 +4,9 @@ include_once dirname(__FILE__)."/../classes/user.class.php";
 include_once dirname(__FILE__)."/../classes/job.class.php";
 include_once dirname(__FILE__)."/../includes/page.php";
 
-?>
-<h1>Transcriptomic Age Calculation Tool - Define Job</h1>
-<?php 
-
 $currentuser=$_SESSION['user'];
+
+echo "<div class=\"view\">".PHP_EOL;
 
 if(isset($_REQUEST)) {
 	try {
@@ -31,4 +29,5 @@ echo Page::link('main', $currentuser);
 echo Page::link('jobadmin', $currentuser);
 echo Page::link('logout', $currentuser);
 ?>
+</div>
 </div>

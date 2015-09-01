@@ -6,8 +6,6 @@ include_once dirname(__FILE__)."/../includes/page.php";
 
 $user=$_SESSION['user']; 
 ?> 
-
-<h1>Transcriptomic Age Calculation Tool - Main</h1>
 <div class="menu">
 <?php 
 echo Page::link("useradmin", $user);

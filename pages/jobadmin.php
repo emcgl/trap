@@ -6,9 +6,6 @@ include_once dirname(__FILE__)."/../config.php";
 include_once dirname(__FILE__)."/../sitemap.php";
 include_once dirname(__FILE__)."/../includes/page.php";
 
-?>
-<h1>Transcriptomic Age Calculation Tool - Job Administration</h1>
-<?php 	
 	
 	$currentuser=$_SESSION['user'];
 
@@ -27,6 +24,7 @@ include_once dirname(__FILE__)."/../includes/page.php";
 	else 
 		$ids=Job::getIds($currentuser);
 	
+	echo "<div class=\"view\">".PHP_EOL;
 	if($ids==false) {
 		
 		echo "<div class=\"message\">No (more) jobs available for you!</div>".PHP_EOL;
@@ -53,8 +51,10 @@ include_once dirname(__FILE__)."/../includes/page.php";
 	}
 	
 	echo "<br/>".PHP_EOL;
+	echo "<div class=\"menu\">".PHP_EOL;
 	echo Page::link('main', $currentuser);
 	echo Page::link('logout', $currentuser);
+	echo "</div>".PHP_EOL;
 	echo PHP_EOL;
 
 	#Automatically reload page
@@ -63,6 +63,6 @@ include_once dirname(__FILE__)."/../includes/page.php";
 	echo "  window.location.href=\"/index.php?page=jobadmin".($edit ? "&edit=true" : "")."\"".PHP_EOL;
 	echo "}, 10000);".PHP_EOL;
 	echo "</script>".PHP_EOL;
-	
+	echo "</div>".PHP_EOL;
 ?>
 

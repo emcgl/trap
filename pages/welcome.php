@@ -1,10 +1,7 @@
 <?php 
 	include_once dirname(__FILE__)."/../includes/page.php";
+	echo "<div class=\"menu\">";
+	echo Page::link('login');
+	echo Page::link('register');
+	echo "</div>".PHP_EOL;
 ?>
-<h1>Transcriptomic Age Calculation Tool - Welcome!</h1>
-<div class="menu">
-<?php
-echo Page::link('login');
-echo Page::link('register'); 
-?>
-</div>

@@ -4,13 +4,11 @@
 	include_once dirname(__FILE__)."/../config.php";
 	include_once dirname(__FILE__)."/../sitemap.php";
 	include_once dirname(__FILE__)."/../includes/page.php";	
-		
-?>
-<h1>Transcriptomic Age Calculation Tool - User Administration</h1>
-<?php 	
+			
+	echo "<div class=\"view\">".PHP_EOL;
 	
-	$currentuser=$_SESSION['user'];
-
+	$currentuser=$_SESSION['user'];	
+	
 	if(isset($_REQUEST)) {
 		User::handle($_REQUEST);
 	}		
@@ -21,7 +19,7 @@
 	}
 	
 	$ids = User::getIds();
-		
+
 	echo "<form action=\"/index.php?page=useradmin\" method=\"POST\">".PHP_EOL;
 	echo "<table>".PHP_EOL;
 	echo User::tableHeader($edit=$edit);
@@ -41,8 +39,10 @@
 	echo "</form>".PHP_EOL;
 	echo "<br/>".PHP_EOL;
 
+	echo "<div class=\"menu\">".PHP_EOL;
 	echo Page::link('main', $currentuser);
 	echo Page::link('logout', $currentuser);
-	
+	echo "</div>".PHP_EOL;
+	echo "</div>".PHP_EOL;	
 ?>
 
