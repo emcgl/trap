@@ -4,12 +4,12 @@ use strict;
 use DBI;
 
 #Config Variables
-my $userdata="/home/marijn/workspace/tragca/data/users";
+my $userdata="/trap/data/users";
 
 #DB Variables
-my $DBName                  = "tragca";
-my $DBUserName              = "tragca";
-my $DBPassword              = "tr12321ca";
+my $DBName                  = "trap";
+my $DBUserName              = "trap";
+my $DBPassword              = "rt12321ac";
 
 #From database 'jobs' table
 my $id="";

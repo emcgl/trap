@@ -32,7 +32,8 @@ nSamples
 
 oexpression <- expression[order(rownames(expression)),]
 
-genes_needed <- read.table("/home/marijn/workspace/tragca/backend/GENEID.txt", header = FALSE, stringsAsFactors=FALSE)
+#genes_needed <- read.table("/home/marijn/workspace/tragca/backend/GENEID.txt", header = FALSE, stringsAsFactors=FALSE)
+genes_needed <- read.table("/trap/backend/GENEID.txt", header = FALSE, stringAsFactors=FALSE)
 
 k <- rownames(oexpression)
 l <- genes_needed[,1]
