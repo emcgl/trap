@@ -1,11 +1,11 @@
 <?php
 
 //PDO Database Settings
-$dbuser =   "trap";
-$dbpasswd = "XXXXXXXX";
+$dbuser =   "tragca";
+$dbpasswd = "tr12321ca";
 $dbdriver = "mysql";
 $dbhost =   "localhost";
-$dbname =   "trap";	
+$dbname =   "tragca";	
 
 //EMail
 $from		= "m.verkerk@erasmusmc.nl";
