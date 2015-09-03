@@ -17,6 +17,7 @@
 	echo User::form($level=true,$submitid="add",$submitvalue="Add");	
 	echo "</form>".PHP_EOL;
 	echo "<br/>".PHP_EOL;
+	echo "<br/>".PHP_EOL;
 	echo "<div class=\"menu\">".PHP_EOL;
 	echo Page::link('main', $currentuser);
 	echo Page::link('logout', $currentuser);

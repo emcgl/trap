@@ -555,7 +555,7 @@ class User
 		$r.="<tr><th>Password</th><td><input id=\"password\" type=\"password\" name=\"password\" size=\"30\" required /></td></tr>".PHP_EOL;
 		$r.="<tr><th>Verify Password</th><td><input id=\"password2\" type=\"password\" name=\"password2\" size=\"30\" required /></td></tr>".PHP_EOL;
 		if($level) {
-		$r.="<tr><th>Level</th><td><select id=\"nlevel\" name=\"nlevel\" size=\"30\">".PHP_EOL;
+		$r.="<tr><th>Level</th><td><select id=\"nlevel\" name=\"nlevel\">".PHP_EOL;
 			foreach(SiteMap::$UserLevels as $level => $nlevel)
 				$r.="<option value=\"".$nlevel."\">".$level."</option>".PHP_EOL;
 			$r.="</select></td></tr>".PHP_EOL;			
