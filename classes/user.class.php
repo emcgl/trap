@@ -549,20 +549,20 @@ class User
 		
 		$r="";
 		
-		$r.="<table>".PHP_EOL;
-		$r.="<tr><th>Name</th><td><input id= \"name\" type=\"text\" name=\"name\" required/></td></tr>".PHP_EOL;
+		$r.="<table class=\"frmtbl\">".PHP_EOL;
+		$r.="<tr><th>Name</th><td><input id= \"name\" type=\"text\" name=\"name\" size=\"30\" required/></td></tr>".PHP_EOL;
 		$r.="<tr><th>E-Mail</th><td><input id=\"email\" type=\"email\" name=\"email\" size=\"30\" required /></td></tr>".PHP_EOL;
-		$r.="<tr><th>Password</th><td><input id=\"password\" type=\"password\" name=\"password\" required /></td></tr>".PHP_EOL;
-		$r.="<tr><th>Verify Password</th><td><input id=\"password2\" type=\"password\" name=\"password2\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Password</th><td><input id=\"password\" type=\"password\" name=\"password\" size=\"30\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Verify Password</th><td><input id=\"password2\" type=\"password\" name=\"password2\" size=\"30\" required /></td></tr>".PHP_EOL;
 		if($level) {
-		$r.="<tr><th>Level</th><td><select id=\"nlevel\" name=\"nlevel\">".PHP_EOL;
+		$r.="<tr><th>Level</th><td><select id=\"nlevel\" name=\"nlevel\" size=\"30\">".PHP_EOL;
 			foreach(SiteMap::$UserLevels as $level => $nlevel)
 				$r.="<option value=\"".$nlevel."\">".$level."</option>".PHP_EOL;
 			$r.="</select></td></tr>".PHP_EOL;			
 		}
 		$r.="</table>".PHP_EOL;	
 		$r.="<br/>".PHP_EOL;
-		$r.="<input id=\"".$submitid."\" name=\"".$submitid."\" type=\"submit\" value=\"".$submitvalue."\"><br/>".PHP_EOL;
+		$r.="<input id=\"".$submitid."\" name=\"".$submitid."\" class=\"btn\" type=\"submit\" value=\"".$submitvalue."\"><br/>".PHP_EOL;
 		
 		return $r;
 	}
