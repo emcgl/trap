@@ -14,7 +14,9 @@ if( isset($_POST) && $user=User::handle($_POST)) {
 		$simplehash = $user->generateValidationCode();						
 ?>
 <h2 class="message">Thanks for providing your personal data!</h2>
-<p>A message will be send to the specified email address. Please follow the provided link in order to verify your email and activate your account!<p>
+<div class="txt">
+<p>A message will be send to the specified email address. Please follow the provided link in order to verify your email and activate your account!</p>
+</div>
 <?php
 	global $from, $smtp; 			
 	
@@ -39,7 +41,7 @@ if( isset($_POST) && $user=User::handle($_POST)) {
                    "\n".   
                    "Copy the following link in your browser:\n".
                    "\n".   
-                   "https://".$_SERVER['SERVER_NAME']."/index.php?page=validate&email=".$email."&code=".$simplehash."\n";
+                   "https://".$_SERVER['SERVER_NAME']."/index.php?page=validate&email=".$recipients."&code=".$simplehash."\n";
 
 	$body = $mime->setTXTBody($txtmsg); 
 	$body = $mime->setHTMLBody($htmlmsg);

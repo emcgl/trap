@@ -21,7 +21,7 @@
 	$ids = User::getIds();
 
 	echo "<form action=\"/index.php?page=useradmin\" method=\"POST\">".PHP_EOL;
-	echo "<table>".PHP_EOL;
+	echo "<table class=\"inftbl\">".PHP_EOL;
 	echo User::tableHeader($edit=$edit);
 	foreach($ids as $id) {
 		$user = User::retrieve($id);	
@@ -32,11 +32,13 @@
 	echo "<input id=\"edit\" name=\"edit\" type=\"hidden\" value=\"".($edit ? "true" : "false")."\">".PHP_EOL; 
 	echo "<br/>".PHP_EOL;	
 	if($edit) 
-		echo "<input type=\"submit\" value=\"Read Only Mode\" onclick=\"return updateValue('edit', 'false');\">".PHP_EOL;
+		echo "<input class=\"btn\" type=\"submit\" value=\"Read Only Mode\" onclick=\"return updateValue('edit', 'false');\">".PHP_EOL;
 	else
-		echo "<input type=\"submit\" value=\"Edit Mode\" onclick=\"return updateValue('edit', 'true');\">".PHP_EOL;
+		echo "<input class=\"btn\" type=\"submit\" value=\"Edit Mode\" onclick=\"return updateValue('edit', 'true');\">".PHP_EOL;
 	
 	echo "</form>".PHP_EOL;
+	echo "<br/>".PHP_EOL;
+	echo "<br/>".PHP_EOL;
 	echo "<br/>".PHP_EOL;
 
 	echo "<div class=\"menu\">".PHP_EOL;

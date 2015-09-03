@@ -579,7 +579,7 @@ class Job {
 	
 		$r="";
 	
-		$r.="<table>".PHP_EOL;
+		$r.="<table class=\"frmtbl\">".PHP_EOL;
 		$r.="<tr><th>Name</th><td><input id= \"name\" type=\"text\" name=\"name\" required/></td></tr>".PHP_EOL;
 		
 		$r.="<tr><th>Expression Type</th><td><select id=\"expressiontype\" name=\"expressiontype\" required>".PHP_EOL;
@@ -594,8 +594,9 @@ class Job {
 		$r.="<tr><th>Age File</th><td><input type=\"file\" id=\"agefile\" name=\"agefile\" required></td></tr>".PHP_EOL;
 		$r.="</table>".PHP_EOL;
 		$r.="<br/>".PHP_EOL;
-		$r.="<input id=\"add\" name=\"add\" type=\"submit\" value=\"Submit\"><br/>".PHP_EOL;
-	
+		$r.="<input class=\"btn\" id=\"add\" name=\"add\" type=\"submit\" value=\"Submit\"><br/>".PHP_EOL;
+		$r.="<br/>".PHP_EOL;
+		
 		return $r;
 	}
 	

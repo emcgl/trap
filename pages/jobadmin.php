@@ -32,7 +32,7 @@ include_once dirname(__FILE__)."/../includes/page.php";
 	} else {
 		
 		echo "<form action=\"/index.php?page=jobadmin\" method=\"POST\">".PHP_EOL;
-		echo "<table>".PHP_EOL;
+		echo "<table class=\"inftbl\">".PHP_EOL;
 		echo Job::tableHeader($edit=$edit,$admin=$currentuser->isAdmin());
 		foreach($ids as $id) {
 			$job = Job::retrieve($id);	
@@ -43,19 +43,20 @@ include_once dirname(__FILE__)."/../includes/page.php";
 		echo "<input id=\"edit\" name=\"edit\" type=\"hidden\" value=\"".($edit ? "true" : "false")."\">".PHP_EOL; 
 		echo "<br/>".PHP_EOL;	
 		if($edit) 
-			echo "<input type=\"submit\" value=\"Read Only Mode\" onclick=\"return updateValue('edit', 'false');\">".PHP_EOL;
+			echo "<input class=\"btn\" type=\"submit\" value=\"Read Only Mode\" onclick=\"return updateValue('edit', 'false');\">".PHP_EOL;
 		else
-			echo "<input type=\"submit\" value=\"Edit Mode\" onclick=\"return updateValue('edit', 'true');\">".PHP_EOL;
+			echo "<input class=\"btn\" type=\"submit\" value=\"Edit Mode\" onclick=\"return updateValue('edit', 'true');\">".PHP_EOL;
 	
 		echo "</form>".PHP_EOL;
 	}
 	
 	echo "<br/>".PHP_EOL;
+	echo "<br/>".PHP_EOL;
+	echo "<br/>".PHP_EOL;
 	echo "<div class=\"menu\">".PHP_EOL;
 	echo Page::link('main', $currentuser);
 	echo Page::link('logout', $currentuser);
-	echo "</div>".PHP_EOL;
-	echo PHP_EOL;
+	echo "</div>".PHP_EOL;	
 
 	#Automatically reload page
 	echo "<script type=\"text/javascript\">".PHP_EOL;

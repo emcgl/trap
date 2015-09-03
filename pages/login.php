@@ -54,6 +54,6 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 	<input type="password" name="password" />
 	<br/>
 	<br/>
-	<input type="submit" value="Submit">
+	<input class="btn" type="submit" value="Submit">
 	</form>
 </div>

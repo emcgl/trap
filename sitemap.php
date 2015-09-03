@@ -39,7 +39,17 @@ class SiteMap {
 			'name'  => "main",
 			'title' => "Main Page",
 			'level' => "user"
-		),	
+		),
+		array(
+			'name'  => "tutorial",
+			'title' => "Tutorial",
+			'level' => "user"
+		),
+		array(
+			'name'  => "citation",
+			'title' => "Citing Software",
+			'level' => "user"
+		),
 		//Logout
 		array(
 			'name' =>  "logout",
