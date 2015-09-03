@@ -44,7 +44,9 @@
 	font-size: 20px;
 	color: green;
 	display:inline-block;
-	border: 1px solid black;	
+	border: 1px solid black;
+	padding: 3px;
+	margin-left: 15px;		
 }
 
 .warning {
@@ -52,7 +54,9 @@
 	font-size: 20px;
 	color: orange;
 	display:inline-block;
-	border: 1px solid black;	
+	border: 1px solid black;
+	padding: 3px;
+	margin-left: 15px;	
 }
 
 .error {
@@ -61,6 +65,8 @@
 	color: red;
 	display:inline-block;
 	border: 1px solid black;
+	padding: 3px;
+	margin-left: 15px;	
 }
 
 .view {
@@ -81,10 +87,10 @@
 	background-color: white;
 	color: black;
 	margin-right: 2px;
+	margin-bottom: 2px;
 	padding: 30px;
 	text-align: center;
 	border: 2px solid black;
-	
 }
 
 .item:hover {
@@ -97,7 +103,9 @@ h2 {
 	color: black;
 	border: 1px solid black;
 	width: auto;
-	display:inline-block;
+	display: inline-block;
+	padding: 3px;
+	margin-left: 15px;	
 }
 
 .formlabel {
@@ -107,6 +115,33 @@ h2 {
 	width: 12el;
 	margin-top: 5px;
 	display:inline-block;	
+	padding: 3px;
+	margin-left: 15px;	
+}
+
+.btn {
+	float: left;
+	font-weight: bold;
+	text-decoration: none;
+	background-color: white;
+	color: black;
+	margin-left: 15px;
+	padding: 15px;
+	text-align: center;
+	border: 2px solid black;
+}
+
+.btn:hover {
+	background-color: black;
+	color: white;
+}
+
+.inftbl {
+	margin: auto;
+}
+
+.frmtbl {
+	margin-left: 15px; 
 }
 
 th, td {
