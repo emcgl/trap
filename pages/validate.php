@@ -13,11 +13,11 @@ if(isset($_GET['email']) && isset($_GET['code'])) {
 		
 		User::confirmValidationCode($email, $code);
 ?>
-	<div class="message">Thank you for validating your email address. Your account is enabled. </div><br/>
+	<h2 class="message">Thank you for validating your email address. Your account is enabled. </h2><br/>
 <?php 	
 		echo "<div class=\"menu\">".PHP_EOL;
 		echo Page::link('login');
-		echo "<\div>".PHP_EOL;
+		echo "</div>".PHP_EOL;
 		
 	} catch(Exception $e ) {
 ?>
