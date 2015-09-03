@@ -30,7 +30,7 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 		if(get_class($user)=="User") {
 			$_SESSION['user']=$user;
 			unset($_SESSION['loginattempts']);
-			echo "<div class=\"message\">Welcome!</div><br/>".PHP_EOL;
+			echo "<h2 class=\"message\">Welcome!</h2><br/>".PHP_EOL;
 			echo "<div class=\"menu\">".PHP_EOL;
 			echo Page::link('main', $user);
 			echo Page::link('logout', $user); 
@@ -47,11 +47,10 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 <div class="view">
 	<h2>Please provide your credentials:</h2>
 	<form action="/index.php?page=login" method="POST">
-	<div class="formlabel">Name:</div>
-	<input type="text" name="name" />
-	<br/>
-	<div class="formlabel">Password:</div>
-	<input type="password" name="password" />
+	<table class="frmtbl">
+	<tr><th>Username:</th><td><input type="text" name="name" /></td></tr>
+	<tr><th>Password:</th><td><input type="password" name="password" /></td></tr>
+	</table>
 	<br/>
 	<br/>
 	<input class="btn" type="submit" value="Submit">
