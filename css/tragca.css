@@ -183,3 +183,12 @@ th {
     opacity: 0.8;
     filter: alpha(opacity=60); /* For IE8 and earlier */
 }
+
+.footer {
+	background-color: #2a2525;
+	color: white;
+	text-align: center;
+	width: 1000px;
+	height: 45px;
+	font-size: 16px;	
+}
