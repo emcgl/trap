@@ -35,11 +35,12 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 			echo Page::link('main', $user);
 			echo Page::link('logout', $user); 
 			echo "</div>".PHP_EOL;
+			echo "</div><!-- view -->".PHP_EOL;
 			return;
 		} else {
 			throw new Exception("Unexpected user class name!");
 		}
-	}
+	}	
 	echo "</div>".PHP_EOL;	
 } 
 
