@@ -15,7 +15,8 @@
     background-repeat: no-repeat;
     background-position: center top;
 	width: 1000px;
-	height: 261px;	
+	height: 260px;
+	padding-top: 1px;
 }
 
 #toptitle {
