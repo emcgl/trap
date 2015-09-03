@@ -75,7 +75,7 @@ class SiteMap {
 		),
 		array(
 			'name'  => "definejob",
-			'title' => "Define Job",
+			'title' => "Define New Job",
 			'level' => "user"
 		)
 	);
