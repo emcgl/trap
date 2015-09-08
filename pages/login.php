@@ -29,7 +29,7 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 	} else {
 		if(get_class($user)=="User") {
 			$_SESSION['user']=$user;
-			unset($_SESSION['loginattempts']);
+			unset($_SESSION['loginattempts']); //2do <- new IP or session resets password guessing!
 			echo "<h2 class=\"message\">Welcome!</h2><br/>".PHP_EOL;
 			echo "<div class=\"menu\">".PHP_EOL;
 			echo Page::link('main', $user);

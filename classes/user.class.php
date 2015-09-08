@@ -8,22 +8,28 @@ include_once dirname(__FILE__)."/../config.php";
 class User
 {		
 	private $id;
+	private $username;
 	private $name;
-	private $nlevel; //This contains the numeric level (see SiteMap for names)
 	private $email;
+	private $jobtitle;
+	private $affiliation;
+	private $nlevel; //This contains the numeric level (see SiteMap for names)
 		
-	private function User($id, $name, $nlevel, $email) {
+	private function User($id, $username, $name, $email, $jobtitle, $affiliation, $nlevel) {
 		$this->id=$id;
+		$this->username=$username;
 		$this->name=$name;
-		$this->nlevel=$nlevel;
 		$this->email=$email;
+		$this->jobtitle=$jobtitle;
+		$this->affiliation=$affiliation;
+		$this->nlevel=$nlevel;
 	}
-	
-	public static function create($name, $password, $level, $email) {
+	         
+	public static function create($username, $password, $name, $email, $jobtitle, $affiliation, $level) {
 			
 		//Have all user param's?
-		if(!isset($name) || !isset($password) || !isset($level) || !isset($email) ) 
-			throw new InvalidArgumentException("Please provide name, password level and email for new user!");
+		if(!isset($username) || !isset($password) || !isset($name) || !isset($email) || !isset($jobtitle) || !isset($affiliation) || !isset($level)  ) 
+			throw new InvalidArgumentException("Please provide username, password, name, email, jobtitle, affiliation and level");
 
 		//Valid level?
 		if(!isset(SiteMap::$UserLevels[$level])) {
@@ -39,32 +45,36 @@ class User
 		
 		//Is there a user with same name or email?
 		$count=0;
-		$sql = "SELECT * FROM users WHERE name=:name OR email=:email";
+		$sql = "SELECT * FROM users WHERE username=:username OR email=:email";
 		try {
 			$stmt = $db->prepare($sql);
-			$stmt->bindParam(':name', $name);
+			$stmt->bindParam(':username', $username);
 			$stmt->bindParam(':email', $email);
 			$stmt->execute();
 			$count = $stmt->rowCount();
 		} catch(PDOException $e) {
 			error_log ("Error: ".$e->getMessage());
-			print "Error checking duplicate name or email!";		
+			print "Error checking duplicate username or email!";		
 		} 	
 		if($count > 0) 
-			throw new InvalidArgumentException("Name or email adress already in use! Please choose other!");
+			throw new InvalidArgumentException("Username or email adress already in use! Please choose other!");
 		
 		//2do: Check Email!
 		
 		$id=-1;
 		
 		//Add user and return instance
-		$sql = "INSERT INTO users (name, password, nlevel, email) VALUES (:name, :password, :nlevel, :email)";
+		$sql = "INSERT INTO users (username, password, name, email, jobtitle, affiliation, nlevel) VALUES (:username, :password, :name, :email, :jobtitle, :affiliation, :nlevel)";
 		try {
 			$stmt = $db->prepare($sql);
-			$stmt->bindParam(':name', $name);
+			$stmt->bindParam(':username', $username);
 			$stmt->bindParam(':password', password_hash($password, PASSWORD_DEFAULT));
+			$stmt->bindParam(':name', $name);
+			$stmt->bindParam(':email', $email);
+			$stmt->bindParam(':jobtitle', $jobtitle);
+			$stmt->bindParam(':affiliation', $affiliation);
 			$stmt->bindParam(':nlevel', $nlevel);
-			$stmt->bindParam(':email', $email);			
+			
 			$stmt->execute();						
 		} catch(PDOException $e) {
 			error_log ("Error: ".$e->getMessage());
@@ -82,19 +92,19 @@ class User
 			die("Error creating user data folder!");
 		}
 				
-		$user = new User($id, $name, $nlevel, $email);			
+		$user = new User($id, $username, $name,  $email, $jobtitle, $affiliation, $nlevel);			
 		
 		return $user;
 	}
 
-	public static function login($name, $password) {
+	public static function login($username, $password) {
 	
 		global $db;
 	
-		$sql = "SELECT id, name, password, nlevel, email FROM users WHERE name=:name";
+		$sql = "SELECT id, username, password, name, email, jobtitle, affiliation, nlevel FROM users WHERE username=:username";
 		try {
 			$stmt = $db->prepare($sql);
-			$stmt->bindParam(':name', $name);
+			$stmt->bindParam(':username', $username);
 			$stmt->execute();
 	
 			$count = $stmt->rowCount();
@@ -112,9 +122,12 @@ class User
 			
 			if( password_verify($password, $result['password']) ) {
 				return new User( $result['id'],
+						$result['username'],
 						$result['name'],
-						$result['nlevel'],
-						$result['email']
+						$result['email'],
+						$result['jobtitle'],
+						$result['affiliation'],
+						$result['nlevel']
 				);
 			}
 				
@@ -131,7 +144,7 @@ class User
 	 */
 	public static function retrieve($id) {
 	
-		$sql = "SELECT id, name, nlevel, email FROM users WHERE id=:id";
+		$sql = "SELECT id, username, name, email, jobtitle, affiliation, nlevel FROM users WHERE id=:id";
 	
 		global $db;
 		
@@ -156,52 +169,73 @@ class User
 		$result = $stmt->fetch(PDO::FETCH_ASSOC);
 		
 		return new User( $result['id'],
+				$result['username'],
 				$result['name'],
-				$result['nlevel'],
-				$result['email']
-				);									
+				$result['email'],
+				$result['jobtitle'],
+				$result['affiliation'],
+				$result['nlevel']
+		);		
 		
 	}
 
 	public static function retrieveName($id) {
 		$user=User::retrieve($id);
-		return $user->name;
+		return $user->username;
 	}
 	
-	public function update($name, $password, $level, $email) {
+	public function update($username, $password, $name, $email, $jobtitle, $affiliation, $level) {
 		
-		$update_name=false;
+		$update_username=false;
 		$update_password=false;
+		$update_name=false; 
+		$update_email=false;
+		$update_jobtitle=false; 
+		$update_affiliation=false;
 		$update_nlevel=false;
-		$update_email=false;		
 		
-		if( isset($name) && $name!="" && $name != $this->name ) $update_name=true;
+		if( isset($username) && $username!="" && $username != $this->username ) $update_username=true;
 		if( isset($password) && $password!="" ) $update_password=true;
-		if( isset($level) && isset(SiteMap::$UserLevels[$level]) &&  $this->nlevel != SiteMap::$UserLevels[$level]) $update_nlevel=true;    
+		if( isset($name) && $name!="" && $name != $this->name ) $update_name=true;
 		if( isset($email) && $email!="" && $this->email != $email) $update_email=true;
+		if( isset($jobtitle) && $jobtitle!="" && $this->jobtitle != $jobtitle ) $update_jobtitle=true;
+		if( isset($affiliation) && $affiliation!="" && $this->affiliation != $affiliation ) $update_affiliation=true;
+		if( isset($level) && isset(SiteMap::$UserLevels[$level]) &&  $this->nlevel != SiteMap::$UserLevels[$level]) $update_nlevel=true;    
 		
-		if($update_name==false && $update_password==false && $update_nlevel==false && $update_email==false) {
+		if($update_username==false && $update_password==false && $update_name==false && $update_email==false && $update_jobtitle==false && $update_affiliation==false && $update_nlevel==false) {
 			throw new Exception("Nothing to update!");
 		}
 		
 		$sql = "UPDATE users SET";
 		$comma=0;
 		
-		if($update_name) {
+		if($update_username) {
 			$comma++;
-			$sql.=" name=:name";
+			$sql.=" username=:username";
 		}
 		if($update_password) {
 			if($comma>0) $sql.=",";$comma++;
 			$sql.=" password=:password";			
 		}
-		if($update_nlevel) {
-			if($comma>0) $sql.=","; $comma++;
-			$sql.=" nlevel=:nlevel";
+		if($update_name) {
+		if($comma>0) $sql.=",";$comma++;
+			$sql.=" name=:name";
 		}
 		if($update_email) {
-			if($comma>0) $sql.=","; $comma++;
+			if($comma>0) $sql.=",";$comma++;
 			$sql.=" email=:email";
+		}
+		if($update_jobtitle) {
+			if($comma>0) $sql.=",";$comma++;
+			$sql.=" jobtitle=:jobtitle";
+		}
+		if($update_affiliation) {
+			if($comma>0) $sql.=",";$comma++;
+			$sql.=" affiliation=:affiliation";
+		}
+		if($update_nlevel) {
+			if($comma>0) $sql.=",";$comma++;
+			$sql.=" nlevel=:nlevel";
 		}
 
 		$sql.=" WHERE id=:id";
@@ -211,10 +245,14 @@ class User
 		try {
 			$stmt = $db->prepare($sql);
 			$stmt->bindParam(':id', $this->id);
-			if($update_name) $stmt->bindParam(':name', $name);
+			if($update_username) $stmt->bindParam(':username', $username);
 			if($update_password) $stmt->bindParam(':password', password_hash($password, PASSWORD_DEFAULT));
-			if($update_nlevel) $stmt->bindParam(':nlevel', SiteMap::$UserLevels[$level]);
+			if($update_name) $stmt->bindParam(':name', $name);
 			if($update_email)$stmt->bindParam(':email', $email);
+			if($update_jobtitle)$stmt->bindParam(':jobtitle', $jobtitle);
+			if($update_affiliation)$stmt->bindParam(':affiliation', $affiliation);
+			if($update_nlevel) $stmt->bindParam(':nlevel', SiteMap::$UserLevels[$level]);
+					
 			$stmt->execute();
 		} catch(PDOException $e) {
 			error_log ("Error: ".$e->getMessage());
@@ -332,7 +370,7 @@ class User
 
 		global $db;
 		
-		$sql = "SELECT id, name, nlevel FROM users WHERE email=:email";
+		$sql = "SELECT id, username, nlevel FROM users WHERE email=:email";
 		
 		try {
 			$stmt = $db->prepare($sql);
@@ -349,16 +387,19 @@ class User
 			
 			$result = $stmt->fetch(PDO::FETCH_ASSOC);						
 			
-			$vcode = md5("thisisasecret".$result['name'].$email);			
+			$vcode = md5("thisisasecret".$result['username'].$email);			
 			
 			if($code == $vcode) {
 
-				$user = new User( $result['id'], 
-							      $result['name'], 
-						          $result['nlevel'], 
-						          $email 
-				);
-				
+				$user = new User( $result['id'],
+						$result['username'],
+						$result['name'],
+						$result['email'],
+						$result['jobtitle'],
+						$result['affiliation'],
+						$result['nlevel']
+				);				
+			
 				if($user->hasAccess("user")) 
 					throw new Exception("User already has login access level.");
 
@@ -374,18 +415,13 @@ class User
 
 		return false;
 	}
-	
-	public function mail($subject, $text) {
 		
-		
-	}	
-	
 	/* Table Header Row */
 	public static function tableHeader($edit=false) {
 		
 		$r="";
 		
-		$r.="<tr class=\"userheader\"><th>ID</th><th>Name</th><th>Password</th><th>Access Level</th><th>EMail</th>";
+		$r.="<tr class=\"userheader\"><th>ID</th><th>Username</th><th>Password</th><th>Name</th><th>EMail</th><th>Job Title</th><th>Affiliation</th><th>Access Level</th>";
 		
 		if($edit) 
 			$r.="<th>Update</th><th>Delete</th>";
@@ -406,11 +442,15 @@ class User
 			
 			$r.="<tr>";
 			$r.="<td>".$this->id."</td>";
-			$r.="<td>".$this->name."</td>";
+			$r.="<td>".$this->username."</td>";
 			$r.="<td>[Secret]</td>";
+			$r.="<td>".$this->name."</td>";
+			$r.="<td>".$this->email."</td>";
+			$r.="<td>".$this->jobtitle."</td>";
+			$r.="<td>".$this->affiliation."</td>";
 			$level = array_search($this->nlevel, SiteMap::$UserLevels);
 			$r.="<td>".$level."</td>";
-			$r.="<td>".$this->email."</td>";
+			
 			$r.="</tr>".PHP_EOL;
 			
 			return $r;
@@ -427,8 +467,12 @@ class User
 						
 			$r= "<tr>";
 			$r.="<td>".$this->id."</td>";
-			$r.="<td><input id=\"name_".$this->id."\" name=\"name_".$this->id."\" type=\"text\" value=\"".$this->name."\"></td>";
+			$r.="<td><input id=\"username_".$this->id."\" name=\"username_".$this->id."\" type=\"text\" value=\"".$this->username."\"></td>";
 			$r.="<td><input id=\"password_".$this->id."\" name=\"password_".$this->id."\" type=\"password\" value=\"\"></td>";
+			$r.="<td><input id=\"name_".$this->id."\" name=\"name_".$this->id."\" type=\"text\" value=\"".$this->name."\"></td>";
+			$r.="<td><input id=\"email_".$this->id."\" name=\"email_".$this->id."\" type=\"text\" value=\"".$this->email."\"></td>".PHP_EOL;
+			$r.="<td><input id=\"jobtitle_".$this->id."\" name=\"jobtitle_".$this->id."\" type=\"text\" value=\"".$this->jobtitle."\"></td>".PHP_EOL;
+			$r.="<td><input id=\"affiliation_".$this->id."\" name=\"affiliation_".$this->id."\" type=\"text\" value=\"".$this->affiliation."\"></td>".PHP_EOL;
 			$r.="<td><select id=\"nlevel_".$this->id."\" name=\"nlevel_".$this->id."\">".PHP_EOL;
 			foreach(SiteMap::$UserLevels as $level => $nlevel) {
 				$r.="<option value=\"".$nlevel."\"".($this->nlevel == $nlevel ?  " selected" : "").">".$level."</option>".PHP_EOL;
@@ -472,26 +516,32 @@ class User
 
 				$user = User::retrieve($id);
 				
-				$name=$requestdata['name_'.$id];
+				$username=$requestdata['username_'.$id];
 				$password=$requestdata['password_'.$id];
+				$name=$requestdata['name_'.$id];
+				$email=$requestdata['email_'.$id];
+				$jobtitle=$requestdata['jobtitle_'.$id];
+				$affiliation=$requestdata['affiliation_'.$id];
 				$level = array_search($requestdata['nlevel_'.$id], SiteMap::$UserLevels);
-				$email=$requestdata['email_'.$id];		
 				
-				$user->update($name, $password, $level, $email);
+				$user->update($username, $password, $name, $email, $jobtitle, $affiliation, $level);
 				
 				return $user;
 			} else 
 			//add
 			if($name=="add" && $value=="Add") {
 
-				$name=$requestdata['name'];
+				$username=$requestdata['username'];
 				$password=$requestdata['password'];
-				$level = array_search($requestdata['nlevel'], SiteMap::$UserLevels);
+				$name=$requestdata['name'];
 				$email=$requestdata['email'];
-		
+				$jobtitle=$requestdata['jobtitle'];
+				$affiliation=$requestdata['affiliation'];
+				$level = array_search($requestdata['nlevel'], SiteMap::$UserLevels);
+				
 				echo "<div class=\"message\">Adding user $name</div><br/>".PHP_EOL;
 				try {
-					$user = User::create($name, $password, $level, $email);
+					$user = User::create($username, $password, $name, $email, $jobtitle, $affiliation, $level);
 					return $user;
 				} catch(Exception $e) {
 					echo "<div class=\"error\">Problem: ".$e->getMessage()."</div>".PHP_EOL;
@@ -502,12 +552,15 @@ class User
 			} else
 			//register
 			if($name=="register" && $value=="Register") {
-				$name=$requestdata['name'];
+				$username=$requestdata['username'];
 				$password=$requestdata['password'];
-				$level = array_search(0, SiteMap::$UserLevels);
+				$name=$requestdata['name'];
 				$email=$requestdata['email'];
-				
-				$user = User::create($name, $password, $level, $email);
+				$jobtitle=$requestdata['jobtitle'];
+				$affiliation=$requestdata['affiliation'];
+				$level = array_search(0, SiteMap::$UserLevels);
+								
+				$user = User::create($username, $password, $name, $email, $jobtitle, $affiliation, $level);
 				
 				return $user;
 			}
@@ -550,10 +603,13 @@ class User
 		$r="";
 		
 		$r.="<table class=\"frmtbl\">".PHP_EOL;
-		$r.="<tr><th>Name</th><td><input id= \"name\" type=\"text\" name=\"name\" size=\"30\" required/></td></tr>".PHP_EOL;
-		$r.="<tr><th>E-Mail</th><td><input id=\"email\" type=\"email\" name=\"email\" size=\"30\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>User Name</th><td><input id=\"username\" type=\"text\" name=\"username\" size=\"30\" required/></td></tr>".PHP_EOL;
 		$r.="<tr><th>Password</th><td><input id=\"password\" type=\"password\" name=\"password\" size=\"30\" required /></td></tr>".PHP_EOL;
 		$r.="<tr><th>Verify Password</th><td><input id=\"password2\" type=\"password\" name=\"password2\" size=\"30\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Name</th><td><input id=\"name\" type=\"text\" name=\"name\" size=\"30\" required/></td></tr>".PHP_EOL;
+		$r.="<tr><th>E-Mail</th><td><input id=\"email\" type=\"email\" name=\"email\" size=\"30\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Job Title</th><td><input id=\"jobtitle\" type=\"text\" name=\"jobtitle\" size=\"30\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Affiliation</th><td><input id=\"affiliation\" type=\"text\" name=\"affiliation\" size=\"30\" required /></td></tr>".PHP_EOL;
 		if($level) {
 		$r.="<tr><th>Level</th><td><select id=\"nlevel\" name=\"nlevel\">".PHP_EOL;
 			foreach(SiteMap::$UserLevels as $level => $nlevel)

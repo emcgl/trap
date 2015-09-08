@@ -510,6 +510,8 @@ class Job {
 
 					$user=null;
 				
+					echo "<div class=\"view\">".PHP_EOL;
+					
 					if(isset($_SESSION['user']))
 						$user=$_SESSION['user'];
 					else
@@ -520,16 +522,28 @@ class Job {
 					$job = Job::retrieve($id);
 					
 					echo "<div class=\"message\">Download results of job '".$job->name."' with id ".$job->id."</div><br/>".PHP_EOL;
-
-					echo "<br/><div><a href=\"/index.php?download&uid=$job->uid&jid=$job->id\">If download won't start automatically, click here!</a></div><br/>".PHP_EOL;
+					echo "<br/>".PHP_EOL;
+					echo "<div class=\"txt\">".PHP_EOL;
+					echo "<p>The download of the result file should start automatically. If not, please click the link below to get access to your transcriptomic age prediction result file!</p>";
+					echo "<a href=\"/index.php?download&uid=$job->uid&jid=$job->id\">Click here!</a>".PHP_EOL;
+					echo "</div>".PHP_EOL;
 					
+					echo "<br/>".PHP_EOL;
+					echo "<br/>".PHP_EOL;
+					echo "<br/>".PHP_EOL;
+					echo "<br/>".PHP_EOL; 
+					
+					echo "<div class=\"menu\">".PHP_EOL;
 					echo Page::link("main", $user);
+					echo "</div>".PHP_EOL;
 					
 					echo "<script type=\"text/javascript\">".PHP_EOL;
 					echo "window.location = \"/index.php?download=job&uid=$job->uid&jid=$job->id\";".PHP_EOL;
 					echo "</script>";
+					
+					echo "</div>".PHP_EOL;
 										
-					return $job;
+					exit;
 			} elseif($name=="add" && $value=="Submit") {			
 				
 					if(isset($_SESSION['user']))
