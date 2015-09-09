@@ -30,7 +30,8 @@ nSamples <- dim(expression)[2]
 
 oexpression <- expression[order(rownames(expression)),]
 
-genes_needed <- read.table("ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+#genes_needed <- read.table("ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+genes_needed <- read.table("/trap/backend/ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
 
 k <- rownames(oexpression)
 l <- genes_needed[,1]
