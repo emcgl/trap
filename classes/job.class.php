@@ -128,17 +128,22 @@ class Job {
 		if(!mkdir("$datafolder/users/$uid/$id")) 
 			die("<div class=\"error\">Error creating job data folder! Please inform administrator!</div>");
 			
-
-		//From files from $_FILES!
-		if(!isset($_FILES) || !isset($_FILES['expressionfile']) || !isset($_FILES['agefile']))
-			throw new Exception("Can't find uploaded files!");
+		if(!isset($_FILES['expressionfile']) )
+			throw new Exception("Can't find expressionfile!");
 		
+		$tmpagefile=""; 
 		$tmpexpressionfile=$_FILES['expressionfile']['tmp_name'];
-		$tmpagefile=$_FILES['agefile']['tmp_name'];
 		
-		if(!isset($expressionfile) || $expressionfile=="")
-			throw new Exception("Can't locate expressionfile!");		
-								
+		if($predictortype == "general") {
+			
+			if(!isset($_FILES['agefile']) )
+				throw new Exception("Can't find agefile!");
+			
+			$tmpagefile=$_FILES['agefile']['tmp_name'];
+			
+			
+		} //else scaled 
+									
 		if(!move_uploaded_file($tmpexpressionfile, "$datafolder/users/$uid/$id/expression.file"))
 			throw new Exception("Can't move expressionfile!");
 		
