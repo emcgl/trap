@@ -9,7 +9,6 @@ include_once "Mail/mime.php";
 $warning=null;
 echo "<div class=\"view\">".PHP_EOL;
 if( isset($_POST) && $user=User::handle($_POST)) {
-		$user->update($name="", $password="", $level="unvalidated", $email="");	
 		$recipients=$_POST['email'];
 		$simplehash = $user->generateValidationCode();						
 ?>

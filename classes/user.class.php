@@ -24,7 +24,7 @@ class User
 		$this->affiliation=$affiliation;
 		$this->nlevel=$nlevel;
 	}
-	         
+	                  
 	public static function create($username, $password, $name, $email, $jobtitle, $affiliation, $level) {
 			
 		//Have all user param's?
@@ -183,7 +183,7 @@ class User
 		$user=User::retrieve($id);
 		return $user->username;
 	}
-	
+	          
 	public function update($username, $password, $name, $email, $jobtitle, $affiliation, $level) {
 		
 		$update_username=false;
@@ -558,7 +558,7 @@ class User
 				$email=$requestdata['email'];
 				$jobtitle=$requestdata['jobtitle'];
 				$affiliation=$requestdata['affiliation'];
-				$level = array_search(0, SiteMap::$UserLevels);
+				$level = "unvalidated"; //array_search(0, SiteMap::$UserLevels);
 								
 				$user = User::create($username, $password, $name, $email, $jobtitle, $affiliation, $level);
 				

@@ -16,6 +16,7 @@ if( isset($_POST['name']) && isset($_POST['password'])) {
 	$_SESSION['loginattempts']++;	
 	if($_SESSION['loginattempts'] > 3) {
 		echo "<div class=\"error\">Number of attempts exceeded!</div><br/>".PHP_EOL;
+		echo "</div>".PHP_EOL;
 		return;
 	}
 	
