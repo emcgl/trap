@@ -359,7 +359,7 @@ class User
 	}
 	
 	public function generateValidationCode() {
-		$code=md5("thisisasecret".$this->name.$this->email);
+		$code=md5("thisisasecret".$this->username.$this->email);
 		return $code;
 	}
 	
@@ -389,20 +389,22 @@ class User
 			
 			$vcode = md5("thisisasecret".$result['username'].$email);			
 			
-			if($code == $vcode) {
-
-				$user = new User( $result['id'],
-						$result['username'],
-						$result['name'],
-						$result['email'],
-						$result['jobtitle'],
-						$result['affiliation'],
-						$result['nlevel']
-				);				
+			error_log("code: $vcode");
 			
+			if($code == $vcode) {								
+				
+				error_log("retrieve:".$result['id'] );
+				
+				if(!$user->retrieve( $result['id'] ))
+					throw new Exception("Can't find registered (unvalidated) user!"); 
+			
+				error_log("hasAccess");				
+				
 				if($user->hasAccess("user")) 
 					throw new Exception("User already has login access level.");
 
+				error_log("setAccess");
+				
 				$user->setAccess("user");
 										
 				return true;	
