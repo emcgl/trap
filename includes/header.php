@@ -7,7 +7,7 @@ function gen_html_header($title) {
 <head>
 	<title>Transcriptomic Age Prediction - <?php echo $title;?></title>
 	<link rel="stylesheet" href="/css/trap.css">
-	<script src="/js/tragca.js"></script>
+	<script src="/js/trap.js"></script>
 </head>
 <body>
 <div id="page">
