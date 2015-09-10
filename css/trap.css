@@ -161,6 +161,11 @@ th {
 	background-color: black;
 }
 
+.subtbl {
+	border: 0px;
+}
+
+
 .runningstatus {
 	color: white;
 	background-color: green;	
