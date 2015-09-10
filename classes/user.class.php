@@ -184,7 +184,7 @@ class User
 		return $user->username;
 	}
 	          
-	public function update($username, $password, $name, $email, $jobtitle, $affiliation, $level) {
+	public function update($username="", $password="", $name="", $email="", $jobtitle="", $affiliation="", $level="") {
 		
 		$update_username=false;
 		$update_password=false;
@@ -202,7 +202,13 @@ class User
 		if( isset($affiliation) && $affiliation!="" && $this->affiliation != $affiliation ) $update_affiliation=true;
 		if( isset($level) && isset(SiteMap::$UserLevels[$level]) &&  $this->nlevel != SiteMap::$UserLevels[$level]) $update_nlevel=true;    
 		
-		if($update_username==false && $update_password==false && $update_name==false && $update_email==false && $update_jobtitle==false && $update_affiliation==false && $update_nlevel==false) {
+		if( $update_username==false && 
+			$update_password==false && 
+		    $update_name==false && 
+			$update_email==false && 
+			$update_jobtitle==false && 
+			$update_affiliation==false && 
+			$update_nlevel==false) {
 			throw new Exception("Nothing to update!");
 		}
 		
@@ -212,6 +218,7 @@ class User
 		if($update_username) {
 			$comma++;
 			$sql.=" username=:username";
+			$this->username=$username;
 		}
 		if($update_password) {
 			if($comma>0) $sql.=",";$comma++;
@@ -220,22 +227,27 @@ class User
 		if($update_name) {
 		if($comma>0) $sql.=",";$comma++;
 			$sql.=" name=:name";
+			$this->name=$name;
 		}
 		if($update_email) {
 			if($comma>0) $sql.=",";$comma++;
 			$sql.=" email=:email";
+			$this->email=$email;
 		}
 		if($update_jobtitle) {
 			if($comma>0) $sql.=",";$comma++;
 			$sql.=" jobtitle=:jobtitle";
+			$this->jobtitle=$jobtitle;
 		}
 		if($update_affiliation) {
 			if($comma>0) $sql.=",";$comma++;
 			$sql.=" affiliation=:affiliation";
+			$this->affiliation=$affiliation;
 		}
 		if($update_nlevel) {
 			if($comma>0) $sql.=",";$comma++;
 			$sql.=" nlevel=:nlevel";
+			$this->nlevel=$nlevel;
 		}
 
 		$sql.=" WHERE id=:id";
@@ -545,7 +557,7 @@ class User
 				
 			} else
 			//register
-			if($name=="register" && $value=="Register") {
+			if( $name=="register" && $value=="Register" ) {
 				$username=$requestdata['username'];
 				$password=$requestdata['password'];
 				$name=$requestdata['name'];
@@ -556,6 +568,27 @@ class User
 								
 				$user = User::create($username, $password, $name, $email, $jobtitle, $affiliation, $level);
 				
+				return $user;
+			}else 
+			//edit?		
+			if($name=="edit" && $value=="Confirm") {
+				
+				if(!isset($_SESSION['user']))
+					throw new Exception("Can't edit user!");
+				
+				$user=$_SESSION['user'];
+				
+				echo "<div class=\"message\">Saving user data!</div><br/><br/>".PHP_EOL;
+			
+				$username=$requestdata['username'];
+				$password=$requestdata['password'];
+				$name=$requestdata['name'];
+				$email=$requestdata['email'];
+				$jobtitle=$requestdata['jobtitle'];
+				$affiliation=$requestdata['affiliation'];
+										
+				$user->update($username, $password, $name, $email, $jobtitle, $affiliation, $level="");
+							 				
 				return $user;
 			}
 			
@@ -592,18 +625,18 @@ class User
 		
 	}
 	
-	public static function form($level=false, $submitid="submit", $submitvalue="Submit") {
+	public static function form($level=false, $submitid="submit", $submitvalue="Submit", $user=false) {
 		
 		$r="";
 		
 		$r.="<table class=\"frmtbl\">".PHP_EOL;
-		$r.="<tr><th>User Name</th><td><input id=\"username\" type=\"text\" name=\"username\" size=\"30\" required/></td></tr>".PHP_EOL;
-		$r.="<tr><th>Password</th><td><input id=\"password\" type=\"password\" name=\"password\" size=\"30\" required /></td></tr>".PHP_EOL;
-		$r.="<tr><th>Verify Password</th><td><input id=\"password2\" type=\"password\" name=\"password2\" size=\"30\" required /></td></tr>".PHP_EOL;
-		$r.="<tr><th>Name</th><td><input id=\"name\" type=\"text\" name=\"name\" size=\"30\" required/></td></tr>".PHP_EOL;
-		$r.="<tr><th>E-Mail</th><td><input id=\"email\" type=\"email\" name=\"email\" size=\"30\" required /></td></tr>".PHP_EOL;
-		$r.="<tr><th>Job Title</th><td><input id=\"jobtitle\" type=\"text\" name=\"jobtitle\" size=\"30\" required /></td></tr>".PHP_EOL;
-		$r.="<tr><th>Affiliation</th><td><input id=\"affiliation\" type=\"text\" name=\"affiliation\" size=\"30\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>User Name</th><td><input id=\"username\" type=\"text\" name=\"username\" size=\"30\"  value=\"".($user ? $user->username : "")."\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Password</th><td><input id=\"password\" type=\"password\" name=\"password\" size=\"30\"".($submitid=="edit" ? "" : " required")."/></td></tr>".PHP_EOL;
+		$r.="<tr><th>Verify Password</th><td><input id=\"password2\" type=\"password\" name=\"password2\" size=\"30\"".($submitid=="edit" ? "" : " required")."/></td></tr>".PHP_EOL;
+		$r.="<tr><th>Name</th><td><input id=\"name\" type=\"text\" name=\"name\" size=\"30\" value=\"".($user ? $user->name : "")."\" required/></td></tr>".PHP_EOL;
+		$r.="<tr><th>E-Mail</th><td><input id=\"email\" type=\"email\" name=\"email\" size=\"30\" value=\"".($user ? $user->email : "")."\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Job Title</th><td><input id=\"jobtitle\" type=\"text\" name=\"jobtitle\" size=\"30\" value=\"".($user ? $user->jobtitle : "")."\" required /></td></tr>".PHP_EOL;
+		$r.="<tr><th>Affiliation</th><td><input id=\"affiliation\" type=\"text\" name=\"affiliation\" size=\"30\" value=\"".($user ? $user->affiliation : "")."\" required /></td></tr>".PHP_EOL;
 		if($level) {
 		$r.="<tr><th>Level</th><td><select id=\"nlevel\" name=\"nlevel\">".PHP_EOL;
 			foreach(SiteMap::$UserLevels as $level => $nlevel)

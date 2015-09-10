@@ -10,6 +10,7 @@ $user=$_SESSION['user'];
 <div class="menu">
 <?php 
 echo Page::link("useradmin", $user);
+echo Page::link("useredit", $user);
 echo Page::link("adduser", $user);
 echo Page::link("jobadmin", $user);
 echo Page::link("definejob", $user);

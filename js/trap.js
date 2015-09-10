@@ -12,6 +12,11 @@ function validatePassword() {
 	//Validate Password
 	//Good length (min 8 chars)
 	var passlength = document.getElementById('password').value.length;
+	
+	if(passlength == 0) {
+		return true;
+	}
+	
 	if(passlength < 8) {
 		alert("Please enter password with minimal length of 8 characters!");
 		return false;

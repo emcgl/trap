@@ -58,6 +58,11 @@ class SiteMap {
 		),
 		//Administrate Users		
 		array(
+			'name' =>  "useredit",
+			'title' => "User Edit",
+			'level' => "user"
+			),
+		array(
 			'name' =>  "useradmin",
 			'title' => "User Administration",				
 			'level' => "admin"
