@@ -388,22 +388,14 @@ class User
 			$result = $stmt->fetch(PDO::FETCH_ASSOC);						
 			
 			$vcode = md5("thisisasecret".$result['username'].$email);			
-			
-			error_log("code: $vcode");
-			
+						
 			if($code == $vcode) {								
 				
-				error_log("retrieve:".$result['id'] );
-				
-				if(!$user->retrieve( $result['id'] ))
-					throw new Exception("Can't find registered (unvalidated) user!"); 
-			
-				error_log("hasAccess");				
+				if(!$user = User::retrieve($result['id'] ))
+					throw new Exception("Can't find registered (unvalidated) user!"); 			
 				
 				if($user->hasAccess("user")) 
 					throw new Exception("User already has login access level.");
-
-				error_log("setAccess");
 				
 				$user->setAccess("user");
 										
