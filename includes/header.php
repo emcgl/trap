@@ -10,6 +10,7 @@ function gen_html_header($title) {
 	<script src="/js/trap.js"></script>
 </head>
 <body>
+<?php include_once("analyticstracking.php") ?>
 <div id="page">
 	<div id="top">
 		<h1 id="toptitle"><span style="color: #92b6cf;">Tr</span>anscriptomic <span style="color: #92b6cf;">A</span>ge <span style="color: #92b6cf;">P</span>rediction - <?php echo $title;?></h1>
