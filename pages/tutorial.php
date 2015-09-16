@@ -23,11 +23,11 @@ $user=$_SESSION['user'];
 	The easiest way to do so is to calculate the residuals. These can be used as gene expression input files for the Transcriptomic Age Prediction. 
 </li>
 <li>Both input files (gene expression and chronological age) need to be tab separated.</li>
-<li>Your Sample IDs need to be non-numeric (i.e. Sample1, Sample2, etc.)</li>
+<li>Both gene expression file and age file must have same samples and IDs</li>
+<li>Your sample IDs need to be non-numeric (i.e. Sample1, Sample2, etc.)</li>
 <li>Your gene expression file should have genes as rows and samples as columns. </li>
 <li>If you have missing gene expression values, please set them to 0.</li>
 <li>Your age file should have samples as rows and age as column. </li>
-<li>If you have missing age values, please take these individuals out of the chronological age file.</li>
 </ul>
 <b>Tutorial PDF</b>
 <p>We tried to make this website as intuitive as possible. Just in case, you can download an extensive tutorial with extra information on this page.</p>
