@@ -198,7 +198,8 @@ th {
 	font-size: 16px;	
 }
 .chargelogo {
-	float: left;
+	margin-top: 10px;
+	float: right;
 }	
 .emclogo {
 	float: right;
@@ -206,13 +207,19 @@ th {
 }
 
 #footertext {
-	text-align: center;
+	text-align: left;
 	color: white;
 	padding-top: 18px;
 	font-size: 14px;
+	margin-left: 15px;
 }
 
 .no-link{ 
   text-decoration: none;
-  color: white;
+ color: white;
+} 
+
+.no-link:hover { 
+  text-decoration: none;
+  color: #92b6cf;
 } 
