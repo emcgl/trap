@@ -1,0 +1,1 @@
+*/1 * * * * SHELL=/bin/bash && cd /trap/backend && ./schedule-jobs.pl &> /dev/null
