@@ -1,0 +1,17 @@
+#
+# General config file
+#
+
+#Locations
+backend="/home/marijn/www/trap/backend";
+userdata="/home/marijn/www/trap/data/users";
+
+#Database
+DBName="trap";
+DBUserName="trap";
+DBPassword="rt12321ac";
+
+#Tools
+qsub="/usr/bin/qsub -V -cwd -b y";
+qdel="/usr/bin/qdel";
+Rscript="/usr/bin/Rscript";
