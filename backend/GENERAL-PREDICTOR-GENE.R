@@ -16,10 +16,10 @@ for (e in commandArgs(trailingOnly=TRUE)) {
   }
 }
 
-expressionfile		# input expression file
+expressionfile	# input expression file
 agefile			# input age file
 formula			# prediction formula
-outputtxt			# results file: association of delta age with phenotypes of interest
+outputtxt		# results file: association of delta age with phenotypes of interest
 
 expression <- read.table(expressionfile, header = TRUE, row.names = 1, stringsAsFactors=FALSE)
 dim(expression)

@@ -3,13 +3,28 @@
 use strict;
 use DBI;
 
-#Config Variables
-my $userdata="/trap/data/users";
+my $configfile="trap-backend.config";
 
-#DB Variables
-my $DBName                  = "trap";
-my $DBUserName              = "trap";
-my $DBPassword              = "rt12321ac";
+#Config Variable Parser
+my %config;
+open(CONFIG, "< $configfile") or die "Can't open $configfile: $!";
+while(<CONFIG>) {
+	#print $_;
+	chomp;
+	s/#.*//;
+	s/^s+//;
+	s/\s+$//;
+	next unless length;
+	/(.*)=\"(.*)\"/; 
+	#print $1."=".$2."\n";
+	$config{$1} = $2;	
+}
+
+my $userdata=$config{"userdata"};
+my $DBName=$config{"DBName"};                   
+my $DBUserName=$config{"DBUserName"};          
+my $DBPassword=$config{"DBPassword"};
+
 
 #From database 'jobs' table
 my $id="";
@@ -151,7 +166,6 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	cancelJob();
 	
 }	
-
 
 $dbh->disconnect();
 

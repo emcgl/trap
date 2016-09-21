@@ -1,9 +1,8 @@
 #!/bin/bash
 
+
 #Config
-backend="/trap/backend";
-userdata="/trap/data/users";
-qdel="/usr/bin/qdel";
+. trap-backend.config
 
 #Parameters
 sgeid=$1;					# Job Id

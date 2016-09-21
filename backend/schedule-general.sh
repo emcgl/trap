@@ -1,10 +1,7 @@
 #!/bin/bash
 
 #Config
-backend="/trap/backend";
-userdata="/trap/data/users";
-qsub="/usr/bin/qsub -V -cwd -b y";
-Rscript="/usr/bin/Rscript";
+. trap-backend.config
 
 #Parameters
 id=$1;				# Job Id
