@@ -20,6 +20,7 @@ expressionfile	# input expression file
 agefile			# input age file
 formula			# prediction formula
 outputtxt		# results file: association of delta age with phenotypes of interest
+backend			# Directory of backend (GENEID.txt data)
 
 expression <- read.table(expressionfile, header = TRUE, row.names = 1, stringsAsFactors=FALSE)
 dim(expression)
@@ -33,7 +34,10 @@ nSamples
 oexpression <- expression[order(rownames(expression)),]
 
 #genes_needed <- read.table("/home/marijn/workspace/tragca/backend/ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
-genes_needed <- read.table("/trap/backend/ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+#genes_needed <- read.table("/trap/backend/ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+#genes_needed <- read.table("./ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+geneid=paste(backend,"/ILMNID.txt", sep="")
+genes_needed <- read.table(geneid, header = FALSE, stringsAsFactors=FALSE)
 
 k <- rownames(oexpression)
 l <- genes_needed[,1]

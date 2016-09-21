@@ -37,7 +37,8 @@ class Job {
 			"running",
 			"halt",
 			"finished",
-			"halted"
+			"halted",
+			"error"
 	);
 		
 	private function Job($id, $uid, $name, $expressiontype, $expresionfile, $predictortype, $agefile, $status) {
@@ -253,9 +254,10 @@ class Job {
 	
 		$stmt = $db->prepare($sql);
 	
+		$uid = $user->getId();
 		try {
 			if($user->isAdmin()) {
-				$stmt->bindParam(':uid', $user->getId());
+				$stmt->bindParam(':uid', $uid);
 			}
 			$stmt->execute();
 		} catch(PDOException $e) {
@@ -339,7 +341,7 @@ class Job {
 		if($this->status=="halt")
 			throw new Exception("The job is in process of halting, can't delete yet! Please wait for your job to be halted!");
 				
-		if($this->isFinished() || $this->isHalted()) {
+		if($this->isFinished() || $this->isHalted() || $this->hasError()) {
 		
 			global $db;	
 				
@@ -367,7 +369,6 @@ class Job {
 		return true;
 	
 	}
-
 	
 	public function isScheduled() {
 		if($this->status=="scheduled")
@@ -386,8 +387,15 @@ class Job {
 			return true;
 		return false;
 	}
+
 	public function isHalted() {
 		if($this->status=="halted")
+			return true;
+		return false;
+	}
+	
+	public function hasError() {
+		if($this->status=="error")
 			return true;
 		return false;
 	}
@@ -433,8 +441,8 @@ class Job {
 			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->agefile."</td>";
-			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>";
-			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : "disabled")."></td>";
+			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : $this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>";
+			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" ".($this->status=="error" ? "value=\"Message\"" : "value=\"Results\"").($this->isFinished() || $this->hasError() ? "" : "disabled")."></td>";
 			$r.="</tr>".PHP_EOL;
 				
 			return $r;
@@ -452,14 +460,13 @@ class Job {
 			$r.="<td>".Job::$expressiontypes[$this->expressiontype]."</td>";
 			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
-			$r.="<td>".$this->agefile."</td>";
-			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>".PHP_EOL;		
-
+			$r.="<td>".$this->agefile."</td>";	
+			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : $this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>".PHP_EOL;
 			$r.="<td>".PHP_EOL;
 			$r.="<table class=\"subtbl\">".PHP_EOL;
 			$r.="<tr><td class=\"subtbl\"><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\" ".($this->isRunning() ? "" : " disabled")."></td></tr>".PHP_EOL;
-			$r.="<tr><td class=\"subtbl\"><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" value=\"Results\" ".($this->isFinished() ? "" : " disabled")."></td></tr>".PHP_EOL;
-			$r.="<tr><td class=\"subtbl\"><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure('Are you sure? Job will be deleted!');\"".( ($this->isFinished() || $this->isHalted()) ? "" : " disabled")."></td></tr>".PHP_EOL;						
+			$r.="<tr><td class=\"subtbl\"><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" ".($this->status=="error" ? "value=\"Message\"" : "value=\"Results\"").($this->isFinished() || $this->hasError() ? "" : "disabled")."></td></tr>".PHP_EOL;;
+			$r.="<tr><td class=\"subtbl\"><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure('Are you sure? Job will be deleted!');\"".( ($this->isFinished() || $this->isHalted() || $this->hasError()) ? "" : " disabled")."></td></tr>".PHP_EOL;						
 			$r.="</table>".PHP_EOL;
 			$r.="</td>".PHP_EOL;
 			
@@ -484,7 +491,7 @@ class Job {
 				else
 					throw new Exception("Need to login for this action!");
 				
-				if(($job->isFinished() || $job->isHalted()) && ($user->isAdmin() || $user->hasId($job->uid))) {				
+				if(($job->isFinished() || $job->isHalted() || $job->hasError()) && ($user->isAdmin() || $user->hasId($job->uid))) {				
 					$job->delete();
 					return $job;
 				} else {
@@ -524,13 +531,13 @@ class Job {
 					
 					$job = Job::retrieve($id);
 					
+					
 					echo "<div class=\"message\">Download results of job '".$job->name."' with id ".$job->id."</div><br/>".PHP_EOL;
 					echo "<br/>".PHP_EOL;
 					echo "<div class=\"txt\">".PHP_EOL;
 					echo "<p>The download of the result file should start automatically. If not, please click the link below to get access to your transcriptomic age prediction result file!</p>";
 					echo "<a href=\"/index.php?download&uid=$job->uid&jid=$job->id\">Click here!</a>".PHP_EOL;
 					echo "</div>".PHP_EOL;
-					
 					echo "<br/>".PHP_EOL;
 					echo "<br/>".PHP_EOL;
 					echo "<br/>".PHP_EOL;
@@ -547,6 +554,45 @@ class Job {
 					echo "</div>".PHP_EOL;
 										
 					exit;
+					} elseif(strncmp($name, "results", 7)==0 && $value=="Message") {
+					
+						$user=null;
+					
+						echo "<div class=\"view\">".PHP_EOL;
+							
+						if(isset($_SESSION['user']))
+							$user=$_SESSION['user'];
+							else
+								throw new Exception("Can't download new job, first login!");
+					
+								$id=substr($name, 8, strlen($name)-8);
+									
+								$job = Job::retrieve($id);
+									
+									
+								echo "<div class=\"message\">Download error message of job '".$job->name."' with id ".$job->id."</div><br/>".PHP_EOL;
+								echo "<br/>".PHP_EOL;
+								echo "<div class=\"txt\">".PHP_EOL;
+								echo "<p>The download of the error file should start automatically. If not, please click the link below to get access to the error file!</p>";
+								echo "<a href=\"/index.php?errormessage&uid=$job->uid&jid=$job->id\">Click here!</a>".PHP_EOL;
+								echo "</div>".PHP_EOL;
+								echo "<br/>".PHP_EOL;
+								echo "<br/>".PHP_EOL;
+								echo "<br/>".PHP_EOL;
+								echo "<br/>".PHP_EOL;
+									
+								echo "<div class=\"menu\">".PHP_EOL;
+								echo Page::link("main", $user);
+								echo "</div>".PHP_EOL;
+									
+								echo "<script type=\"text/javascript\">".PHP_EOL;							
+								echo "window.location = \"/index.php?errormessage=job&uid=$job->uid&jid=$job->id\";".PHP_EOL;							
+								echo "</script>";
+									
+								echo "</div>".PHP_EOL;
+					
+								exit;
+									
 			} elseif($name=="add" && $value=="Submit") {			
 				
 					if(isset($_SESSION['user']))
@@ -638,6 +684,42 @@ class Job {
 		exit;
 	
 	}
+	
+	public function retrieveError() {
+	
+		global $datafolder;
+		
+		$filename="";
+		
+		//Maybe we should adjust the database for storing GRIDENGINE job id
+		foreach (new DirectoryIterator("$datafolder/users/$this->uid/$this->id") as $fileInfo) {
+			if($fileInfo->isDot()) continue;
+			$filename=$fileInfo->getFilename();			
+			if(strncmp($filename, "Rscript.e", 9)==0)
+				break;
+		}
+		
+		if(strncmp($filename, "Rscript.e", 9)!=0) {
+			echo "<h1 class=\"error\">Can't find error message!</h1>".PHP_EOL;
+			exit;
+		}
+			
+		$file = "$datafolder/users/$this->uid/$this->id/$filename";
+	
+		if(!file_exists($file)) { die ("Output file does not exist!"); }
+			
+		header('Content-Description: File Transfer');
+		header('Content-Type: application/octet-stream');
+		header('Content-Disposition: attachment; filename="errormessage.txt"');
+		header('Expires: 0');
+		header('Cache-Control: must-revalidate');
+		header('Pragma: public');
+		header('Content-Length: '.filesize($file));
+		readfile($file);
+		exit;
+	
+	}
+	
 	
 	
 }

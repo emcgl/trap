@@ -25,7 +25,7 @@ if(isset($_GET['download']) && isset($_GET['uid']) && isset($_GET['jid']) && $us
 		
 		if($job = Job::retrieve($jid)) {
 			
-			if($job->isOwnedBy($user) || $user->isAdmin()) {
+			if( ($job->isOwnedBy($user) || $user->isAdmin()) && $job->isFinished()) {
 				
 				$job->retrieveOutput();
 			
@@ -33,6 +33,27 @@ if(isset($_GET['download']) && isset($_GET['uid']) && isset($_GET['jid']) && $us
 		}
 	}
 }
+
+//Error message?
+if(isset($_GET['errormessage']) && isset($_GET['uid']) && isset($_GET['jid']) && $user!=null) {
+
+	$uid=$_GET['uid'];
+	$jid=$_GET['jid'];
+
+	if($user->hasId($uid) || $user->isAdmin()) {
+
+		if($job = Job::retrieve($jid)) {
+				
+			if( ($job->isOwnedBy($user) || $user->isAdmin()) && $job->hasError()) {
+
+				$job->retrieveError();
+					
+			}
+		}
+	}
+}
+
+
 
 #include dirname(__FILE__)."/includes/header.php";
 

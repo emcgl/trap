@@ -25,6 +25,7 @@ my $DBName=$config{"DBName"};
 my $DBUserName=$config{"DBUserName"};          
 my $DBPassword=$config{"DBPassword"};
 
+my $qstat=$config{"qstat"};
 
 #From database 'jobs' table
 my $id="";
@@ -129,14 +130,41 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 		my $sql2 = "UPDATE jobs SET status = 'finished' WHERE id=".$dbh->quote($id);		
 		my $rows_affected = $dbh->do($sql2);
 		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
+			
+		print "finished!\n";
+		continue;
+	}
+	
+	 
+	#Is the job still in the SGE queue?
+
+	$sgeid = recoverSGEID();
+
+	my ($jstatus, $jid);
 		
-			print "finished!\n";
+	open QSTAT, '-|', '${qstat}' or die "Can't use ${qstat} command!";
+	while(my $line=<QSTAT>) {
+		next unless $line =~ "Rscript";
+		if($line =~ /^\s*(\d*)\s*([\d|\.]*)\s*(\S*)\s*(\S*)\s*(\S*)\s*([\d|\/]*)\s*([\d|:]*)/) {
+			$jid = $1;
+			$jstatus = $5;
+			if($jid == $sgeid) { last };
+		}
+	}
+	close QSTAT;
+		
+	unless (defined($jid) && $jid == $sgeid && ( $jstatus eq "r" || $jstatus eq "qw") ) {
+		#Update Database entry to finished!
+		my $sql3 = "UPDATE jobs SET status = 'error' WHERE id=".$dbh->quote($id);		
+		my $rows_affected = $dbh->do($sql3);
+		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
+	
+		print "error!\n";
 		
 	} else {
 		print "not finished!\n";
 	}
 }
-
 
 #
 # Iterate all to-halt jobs!

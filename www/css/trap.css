@@ -179,6 +179,10 @@ th {
 	background-color: white;
 }
 
+.errorstatus {
+	color: white;
+	background-color: red;	
+}
  
 .txt {
     margin-left: 15px;

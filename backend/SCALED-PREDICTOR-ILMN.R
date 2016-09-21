@@ -17,9 +17,10 @@ for (e in commandArgs(trailingOnly=TRUE)) {
 library(preprocessCore)
 options(expression=30000)
 
-expressionfile		# input residuals file
+expressionfile	# input residuals file
 formula			# prediction formula
-outputtxt			# results file: association of delta age with phenotypes of interest
+outputtxt		# results file: association of delta age with phenotypes of interest
+backend			# Directory of backend (GENEID.txt data)
 
 
 expression <- read.table(expressionfile, header = TRUE, row.names = 1, stringsAsFactors=FALSE)
@@ -31,7 +32,10 @@ nSamples <- dim(expression)[2]
 oexpression <- expression[order(rownames(expression)),]
 
 #genes_needed <- read.table("ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
-genes_needed <- read.table("/trap/backend/ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+#genes_needed <- read.table("/trap/backend/ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+#genes_needed <- read.table("./ILMNID.txt", header = FALSE, stringsAsFactors=FALSE)
+geneid=paste(backend,"/ILMNID.txt", sep="")
+genes_needed <- read.table(geneid, header = FALSE, stringsAsFactors=FALSE)
 
 k <- rownames(oexpression)
 l <- genes_needed[,1]
