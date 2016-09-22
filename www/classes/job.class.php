@@ -441,7 +441,7 @@ class Job {
 			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->agefile."</td>";
-			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : $this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>";
+			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : ($this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"")).">".$this->status."</td>";
 			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" ".($this->status=="error" ? "value=\"Message\"" : "value=\"Results\"").($this->isFinished() || $this->hasError() ? "" : "disabled")."></td>";
 			$r.="</tr>".PHP_EOL;
 				
@@ -461,11 +461,11 @@ class Job {
 			$r.="<td>".$this->expressionfile."</td>";
 			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
 			$r.="<td>".$this->agefile."</td>";	
-			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : $this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"").">".$this->status."</td>".PHP_EOL;
+			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : ($this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"")).">".$this->status."</td>".PHP_EOL;
 			$r.="<td>".PHP_EOL;
 			$r.="<table class=\"subtbl\">".PHP_EOL;
 			$r.="<tr><td class=\"subtbl\"><input id=\"halt_".$this->id."\" name=\"halt_".$this->id."\" type=\"submit\" value=\"Halt\" ".($this->isRunning() ? "" : " disabled")."></td></tr>".PHP_EOL;
-			$r.="<tr><td class=\"subtbl\"><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" ".($this->status=="error" ? "value=\"Message\"" : "value=\"Results\"").($this->isFinished() || $this->hasError() ? "" : "disabled")."></td></tr>".PHP_EOL;;
+			$r.="<tr><td class=\"subtbl\"><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" ".($this->status=="error" ? "value=\"Message\"" : "value=\"Results\"").(($this->isFinished() || $this->hasError()) ? "" : "disabled")."></td></tr>".PHP_EOL;;
 			$r.="<tr><td class=\"subtbl\"><input id=\"delete_".$this->id."\" name=\"delete_".$this->id."\" type=\"submit\" value=\"Delete\" onclick=\"return sure('Are you sure? Job will be deleted!');\"".( ($this->isFinished() || $this->isHalted() || $this->hasError()) ? "" : " disabled")."></td></tr>".PHP_EOL;						
 			$r.="</table>".PHP_EOL;
 			$r.="</td>".PHP_EOL;
