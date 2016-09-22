@@ -7,10 +7,10 @@
 id=$1;				# Job Id
 uid=$2;				# User Id
 rscript=$3;			# R script file
-expressionfile=$4;		# Expression file
+expressionfile=$4;	# Expression file
 agefile=$5;			# Age File
-formulafile=$6;			# Formula File
-outputtxt=$7;			# Output
+formulafile=$6;		# Formula File
+outputtxt=$7;		# Output
 
 cd $userdata/$uid/$id;	  	  	
 	  	

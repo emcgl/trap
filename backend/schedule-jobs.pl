@@ -45,6 +45,8 @@ my $outputnr;
 
 my $dbh = DBI->connect("DBI:mysql:$DBName;localhost;port=3306","$DBUserName","$DBPassword", {'RaiseError' => 0}) or die "Cannot connect to database!\n";
 
+
+
 #
 # Iterate all "defined" jobs, make them "running" and schedule them!
 #
@@ -68,15 +70,17 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	my $rows_affected = $dbh->do($sql2);
 	$rows_affected == 1 or die "db entry not found!",$id; 
 	
+	scheduleJob();
+	
 	print "scheduled!\n";	
-	scheduleJob();	
+		
 }
 
 #
 # Iterate all scheduled jobs, see if they are running!
 #
 
-print "Check 'scheduled' jobs jobs!\n";
+print "Check 'scheduled' jobs!\n";
 
 $sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='scheduled'";
 $sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
@@ -84,7 +88,7 @@ $rc = $sth->execute or die "Can't execute statement!";
 
 while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
 
-	print "Analysing scheduled job ".$id."..";
+	print "Analysing scheduled job ".$id.": ";
 	
 	my $errornr=0;
 	my $outputnr=0;
@@ -93,14 +97,14 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	
 	if($sgeid gt 0) {
 		
-		print "has gridengine job nr: ".$sgeid."..";
+		print "has sge job nr: ".$sgeid."..\n";
 		
 		#Update Database entry to running!
 		my $sql2 = "UPDATE jobs SET status = 'running' WHERE id=".$dbh->quote($id);		
 		my $rows_affected = $dbh->do($sql2);
 		$rows_affected == 1 or die "db entry not found, not able to update status!",$id;
 	} else { 
-		print "no output (yet!)..\n";
+		print "no error / output to extract sge job nr..\n";
 	}
 }
 
@@ -132,10 +136,9 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
 			
 		print "finished!\n";
-		continue;
+		next;
 	}
-	
-	 
+		 
 	#Is the job still in the SGE queue?
 
 	$sgeid = recoverSGEID();
@@ -144,7 +147,7 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 		
 	open QSTAT, '-|', '${qstat}' or die "Can't use ${qstat} command!";
 	while(my $line=<QSTAT>) {
-		next unless $line =~ "Rscript";
+		next unless $line =~ "Rscript";		
 		if($line =~ /^\s*(\d*)\s*([\d|\.]*)\s*(\S*)\s*(\S*)\s*(\S*)\s*([\d|\/]*)\s*([\d|:]*)/) {
 			$jid = $1;
 			$jstatus = $5;
@@ -153,8 +156,8 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	}
 	close QSTAT;
 		
-	unless (defined($jid) && $jid == $sgeid && ( $jstatus eq "r" || $jstatus eq "qw") ) {
-		#Update Database entry to finished!
+	unless (defined(${jid}) && ${jid} == ${sgeid} && ( $jstatus eq "r" || $jstatus eq "qw") ) {
+		#Update Database entry to error!
 		my $sql3 = "UPDATE jobs SET status = 'error' WHERE id=".$dbh->quote($id);		
 		my $rows_affected = $dbh->do($sql3);
 		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
