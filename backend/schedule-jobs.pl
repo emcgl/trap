@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-
 use strict;
 use DBI;
 
@@ -9,16 +8,15 @@ my $configfile="trap-backend.config";
 my %config;
 open(CONFIG, "< $configfile") or die "Can't open $configfile: $!";
 while(<CONFIG>) {
-	#print $_;
 	chomp;
 	s/#.*//;
 	s/^s+//;
 	s/\s+$//;
 	next unless length;
 	/(.*)=\"(.*)\"/; 
-	#print $1."=".$2."\n";
 	$config{$1} = $2;	
 }
+close CONFIG;
 
 my $userdata=$config{"userdata"};
 my $DBName=$config{"DBName"};                   
@@ -45,158 +43,132 @@ my $outputnr;
 
 my $dbh = DBI->connect("DBI:mysql:$DBName;localhost;port=3306","$DBUserName","$DBPassword", {'RaiseError' => 0}) or die "Cannot connect to database!\n";
 
-
-
+#New approach: one iteration and blocks handling status (should reduce flow complexity )
 #
-# Iterate all "defined" jobs, make them "running" and schedule them!
+#Due to delay with initiating cron this is likely to go well (no mutexes / lock files or other parallel tricks used!)
 #
-
-print "Schedule 'defined' jobs!\n";
-
-my $sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='defined'";
+my $sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs ORDER BY id";
 my $sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
 my $rc = $sth->execute or die "Can't execute statement!";
-
-while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
-			
-	print "Processing job: ",$id,", named: ", $name," ..";
-	
-	#Fixed!
-	$expressionfile="expression.file";
-	$agefile="age.file";
-	
-	#Update Database and run!
-	my $sql2 = "UPDATE jobs SET status = 'scheduled' WHERE id=".$dbh->quote ($id);		
-	my $rows_affected = $dbh->do($sql2);
-	$rows_affected == 1 or die "db entry not found!",$id; 
-	
-	scheduleJob();
-	
-	print "scheduled!\n";	
-		
-}
-
-#
-# Iterate all scheduled jobs, see if they are running!
-#
-
-print "Check 'scheduled' jobs!\n";
-
-$sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='scheduled'";
-$sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
-$rc = $sth->execute or die "Can't execute statement!";
-
 while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
 
-	print "Analysing scheduled job ".$id.": ";
-	
-	my $errornr=0;
-	my $outputnr=0;
-	
-	$sgeid = recoverSGEID();
-	
-	if($sgeid gt 0) {
+	#Check defined
+	if($status eq 'defined') {
+				
+		print "Processing defined job: ",$id,", named: ", $name," ..\n";
 		
-		print "has sge job nr: ".$sgeid."..\n";
+		#Fixed!
+		$expressionfile="expression.file";
+		$agefile="age.file";
 		
-		#Update Database entry to running!
-		my $sql2 = "UPDATE jobs SET status = 'running' WHERE id=".$dbh->quote($id);		
+		#Update Database and run!
+		my $sql2 = "UPDATE jobs SET status = 'scheduled' WHERE id=".$dbh->quote ($id);		
 		my $rows_affected = $dbh->do($sql2);
-		$rows_affected == 1 or die "db entry not found, not able to update status!",$id;
-	} else { 
-		print "no error / output to extract sge job nr..\n";
+		$rows_affected == 1 or die "db entry not found!",$id; 
+		
+		scheduleJob();
+		
+		print "Scheduled!\n";
+		next;			
 	}
-}
-
-#
-# Iterate all running jobs, see if they are ready!
-#
-
-print "Check 'running' jobs!\n";
-
-$sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='running'";
-$sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
-$rc = $sth->execute or die "Can't execute statement!";
-
-while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
-
-	print "Analysing running job ".$id."..";
-
-	#Is there a result file?
-	my $outputtxt="";
-	if($predictortype eq "scaled"){ $outputtxt = "output.scaled.".$id.".txt";}	
-	elsif($predictortype eq "general") { $outputtxt = "output.general.".$id.".txt";}
-	else { die "Unknown predictortype:".$predictortype."\n";}
+	
+	#Scheduled jobs
+	if($status eq 'scheduled') {
+	
+		print "Analysing scheduled job ".$id.": ";
 		
-	if( -e $userdata."/".$uid."/".$id."/".$outputtxt ) {
+		my $errornr=0;
+		my $outputnr=0;
 		
-		#Update Database entry to finished!
-		my $sql2 = "UPDATE jobs SET status = 'finished' WHERE id=".$dbh->quote($id);		
-		my $rows_affected = $dbh->do($sql2);
-		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
+		$sgeid = recoverSGEID();
+		
+		if($sgeid > 0) {
 			
-		print "finished!\n";
+			print "has sge job nr: ".$sgeid."..\n";
+			
+			#Update Database entry to running!
+			my $sql2 = "UPDATE jobs SET status = 'running' WHERE id=".$dbh->quote($id);		
+			my $rows_affected = $dbh->do($sql2);
+			$rows_affected == 1 or die "db entry not found, not able to update status!",$id;
+		} else { 
+			print "no error / output to extract sge job nr..\n";
+		}
 		next;
 	}
-		 
-	#Is the job still in the SGE queue?
-
-	$sgeid = recoverSGEID();
-
-	my ($jstatus, $jid);
-		
-	open QSTAT, '-|', '${qstat}' or die "Can't use ${qstat} command!";
-	while(my $line=<QSTAT>) {
-		next unless $line =~ "Rscript";		
-		if($line =~ /^\s*(\d*)\s*([\d|\.]*)\s*(\S*)\s*(\S*)\s*(\S*)\s*([\d|\/]*)\s*([\d|:]*)/) {
-			$jid = $1;
-			$jstatus = $5;
-			if($jid == $sgeid) { last };
+	
+	#Running jobs, see if they are ready!
+	if($status eq 'running') {
+	
+		print "Analysing running job ".$id."..";
+	
+		#Is there a result file?
+		my $outputtxt="";
+		if($predictortype eq "scaled"){ $outputtxt = "output.scaled.".$id.".txt";}	
+		elsif($predictortype eq "general") { $outputtxt = "output.general.".$id.".txt";}
+		else { die "Unknown predictortype:".$predictortype."\n";}
+			
+		if( -e $userdata."/".$uid."/".$id."/".$outputtxt ) {
+			
+			#Update Database entry to finished!
+			my $sql2 = "UPDATE jobs SET status = 'finished' WHERE id=".$dbh->quote($id);		
+			my $rows_affected = $dbh->do($sql2);
+			$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
+				
+			print "finished!\n";
+			next;
 		}
-	}
-	close QSTAT;
+			 
+		#Is the job still in the SGE queue?
+	
+		$sgeid = recoverSGEID();
+	
+		my ($jstatus, $jid);
+			
+		open QSTAT, '-|', '${qstat}' or die "Can't use ${qstat} command!";
+		while(my $line=<QSTAT>) {
+			next unless $line =~ "Rscript";		
+			if($line =~ /^\s*(\d*)\s*([\d|\.]*)\s*(\S*)\s*(\S*)\s*(\S*)\s*([\d|\/]*)\s*([\d|:]*)/) {
+				$jid = $1;
+				$jstatus = $5;
+				if($jid == $sgeid) { last };
+			}
+		}
+		close QSTAT;
+			
+		unless (defined(${jid}) && ${jid} == ${sgeid} && ( $jstatus eq "r" || $jstatus eq "qw") ) {
+			#Update Database entry to error!
+			my $sql3 = "UPDATE jobs SET status = 'error' WHERE id=".$dbh->quote($id);		
+			my $rows_affected = $dbh->do($sql3);
+			$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
 		
-	unless (defined(${jid}) && ${jid} == ${sgeid} && ( $jstatus eq "r" || $jstatus eq "qw") ) {
-		#Update Database entry to error!
-		my $sql3 = "UPDATE jobs SET status = 'error' WHERE id=".$dbh->quote($id);		
-		my $rows_affected = $dbh->do($sql3);
+			print "error!\n";
+			
+		} else {
+			print "not finished!\n";
+		}
+		next;
+	}
+	
+	#to-halt jobs!
+	if($status eq 'halt') {
+		print "Halting job ".$id."..";
+	
+		$sgeid = recoverSGEID();
+		
+		if($sgeid == 0) {
+			die("Can't find SGE id for 'halt' job ".$id."..should have output and error file\n");
+		}
+	
+		#Update Database entry to finished!
+		my $sql2 = "UPDATE jobs SET status = 'halted' WHERE id=".$dbh->quote($id);		
+		my $rows_affected = $dbh->do($sql2);
 		$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
-	
-		print "error!\n";
 		
-	} else {
-		print "not finished!\n";
-	}
+		cancelJob();
+		
+		next;
+	}	
 }
-
-#
-# Iterate all to-halt jobs!
-#
-
-print "Check 'halt' jobs!\n";
-
-$sql = "SELECT id, uid, name, expressionfile, expressiontype, predictortype, agefile, status FROM jobs WHERE status='halt'";
-$sth = $dbh->prepare( $sql ) or die "Can't prepare db statement!";
-$rc = $sth->execute or die "Can't execute statement!";
-
-while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agefile, $status) = $sth->fetchrow_array) {
-
-	print "Halting job ".$id."..";
-
-	$sgeid = recoverSGEID();
-	
-	if($sgeid == 0) {
-		die("Can't find SGE id for 'halt' job ".$id."..should have output and error file\n");
-	}
-
-	#Update Database entry to finished!
-	my $sql2 = "UPDATE jobs SET status = 'halted' WHERE id=".$dbh->quote($id);		
-	my $rows_affected = $dbh->do($sql2);
-	$rows_affected == 1 or die "db entry not found, not able to update status!",$id; 
-	
-	cancelJob();
-	
-}	
 
 $dbh->disconnect();
 
@@ -268,14 +240,16 @@ sub scheduleJob {
 		
 	}		
 	 
-system(@args) == 0 or die "system @args failed: $?";
-
+	system(@args) == 0 or die "system @args failed: $?";
+	return;
 }
 
 sub recoverSGEID {
 
 	$errornr=0;
 	$outputnr=0;
+
+	print "\ndir:".${userdata}."/".$uid."/".$id."\n"; 
 
 	opendir(DIR, $userdata."/".$uid."/".$id );
 	my @files = readdir DIR;
@@ -285,7 +259,6 @@ sub recoverSGEID {
 		if($file eq "."){next};
 		if($file eq ".."){next};
 		if($file !~ "Rscript"){next};
-		
 		$file =~ /Rscript\.([e|o])(\d*)/;
 
 		if($1 eq 'e') {
@@ -296,16 +269,15 @@ sub recoverSGEID {
 			die("Found a strange grid engine Rscript output file:".$file."\n")
 		}
 	}
-		if($errornr!=$outputnr) { die "Found different grid engine jobs outputs: ".$errornr.", and ".$outputnr.".\n"};
+	close DIR;
+	
+	if($errornr != $outputnr) { die "Found different grid engine jobs outputs: ".$errornr.", and ".$outputnr.".\n"};
 	
 	return $errornr;
 }
 
 sub cancelJob {
-		my @args="";
-
-	  	@args = ( "./halt.sh",
-	  			  $sgeid);
-
-		system(@args) == 0 or die "system @args failed: $?";
+	  	my @args = ("./halt.sh", $sgeid);
+		system(@args) == 0 or die "unable to cancel job: system @args failed: $?";
+		return;
 }	
