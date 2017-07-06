@@ -100,14 +100,35 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	if($status eq 'running') {
 	
 		print "Analysing running job ".$id."..";
+
+		#Retrieve info from qstat	
+		my ($jstatus, $jid);
+		open QSTAT, '-|', '${qstat}' or die "Can't use ${qstat} command!";
+		while(my $line=<QSTAT>) {
+			next unless $line =~ "Rscript";		
+			if($line =~ /^\s*(\d*)\s*([\d|\.]*)\s*(\S*)\s*(\S*)\s*(\S*)\s*([\d|\/]*)\s*([\d|:]*)/) {
+				$jid = $1;
+				$jstatus = $5;
+				if($jid == $sgeid) { last };
+			}
+		}
+		close QSTAT;
+
+		#Determine SGE id from output files
+		$sgeid = recoverSGEID();
 	
 		#Is there a result file?
 		my $outputtxt="";
 		if($predictortype eq "scaled"){ $outputtxt = "output.scaled.".$id.".txt";}	
 		elsif($predictortype eq "general") { $outputtxt = "output.general.".$id.".txt";}
-		else { die "Unknown predictortype:".$predictortype."\n";}
-			
-		if( -e $userdata."/".$uid."/".$id."/".$outputtxt ) {
+		else { die "Unknown predictortype:".$predictortype."\n";}		
+
+		if( -e $userdata."/".$uid."/".$id."/".$outputtxt) {
+
+			if($jstatus eq "r" || $jstatus eq "qw" ) {
+				print "Probably still building output.. check out later!\n";
+				next;
+			}
 			
 			#Update Database entry to finished!
 			my $sql2 = "UPDATE jobs SET status = 'finished' WHERE id=".$dbh->quote($id);		
@@ -119,22 +140,6 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 		}
 			 
 		#Is the job still in the SGE queue?
-	
-		$sgeid = recoverSGEID();
-	
-		my ($jstatus, $jid);
-			
-		open QSTAT, '-|', '${qstat}' or die "Can't use ${qstat} command!";
-		while(my $line=<QSTAT>) {
-			next unless $line =~ "Rscript";		
-			if($line =~ /^\s*(\d*)\s*([\d|\.]*)\s*(\S*)\s*(\S*)\s*(\S*)\s*([\d|\/]*)\s*([\d|:]*)/) {
-				$jid = $1;
-				$jstatus = $5;
-				if($jid == $sgeid) { last };
-			}
-		}
-		close QSTAT;
-			
 		unless (defined(${jid}) && ${jid} == ${sgeid} && ( $jstatus eq "r" || $jstatus eq "qw") ) {
 			#Update Database entry to error!
 			my $sql3 = "UPDATE jobs SET status = 'error' WHERE id=".$dbh->quote($id);		
