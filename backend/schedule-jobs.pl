@@ -1,6 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl -w 
+use Sys::RunAlone;
 use strict;
 use DBI;
+
+print "Starting: $0\n";
 
 my $configfile="trap-backend.config";
 
@@ -55,7 +58,7 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	#Check defined
 	if($status eq 'defined') {
 				
-		print "Processing defined job: ",$id,", named: ", $name," ..\n";
+		print "defined: Processing defined job: ",$id,", named: ", $name," ..\n";
 		
 		#Fixed!
 		$expressionfile="expression.file";
@@ -75,7 +78,7 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	#Scheduled jobs
 	if($status eq 'scheduled') {
 	
-		print "Analysing scheduled job ".$id.": ";
+		print "scheduled: Analysing scheduled job ".$id.": ";
 		
 		my $errornr=0;
 		my $outputnr=0;
@@ -99,33 +102,36 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	#Running jobs, see if they are ready!
 	if($status eq 'running') {
 	
-		print "Analysing running job ".$id."..";
+		print "running: Analysing running job ".$id."..";
+
+		#Determine SGE id from output files
+		$sgeid = recoverSGEID();
 
 		#Retrieve info from qstat	
 		my ($jstatus, $jid);
-		open QSTAT, '-|', '${qstat}' or die "Can't use ${qstat} command!";
+		open QSTAT, "-|", "${qstat}" or die "Can't use ${qstat} command!";
 		while(my $line=<QSTAT>) {
 			next unless $line =~ "Rscript";		
 			if($line =~ /^\s*(\d*)\s*([\d|\.]*)\s*(\S*)\s*(\S*)\s*(\S*)\s*([\d|\/]*)\s*([\d|:]*)/) {
-				$jid = $1;
-				$jstatus = $5;
-				if($jid == $sgeid) { last };
+				if($sgeid == $1) {					
+					$jid = $1;
+					$jstatus = $5;
+					print "Found ${sgeid} entry in qstat output: jobid:${jid}, status: ${jstatus}..\n";
+					last ;
+				}
 			}
 		}
 		close QSTAT;
 
-		#Determine SGE id from output files
-		$sgeid = recoverSGEID();
-	
 		#Is there a result file?
 		my $outputtxt="";
-		if($predictortype eq "scaled"){ $outputtxt = "output.scaled.".$id.".txt";}	
+		if($predictortype eq "scaled"){ $outputtxt = "output.scaled.".$id.".txt"; }	
 		elsif($predictortype eq "general") { $outputtxt = "output.general.".$id.".txt";}
 		else { die "Unknown predictortype:".$predictortype."\n";}		
 
 		if( -e $userdata."/".$uid."/".$id."/".$outputtxt) {
 
-			if($jstatus eq "r" || $jstatus eq "qw" ) {
+			if(defined(${jid}) && (${jstatus} eq "r" || ${jstatus} eq "qw") ) {
 				print "Probably still building output.. check out later!\n";
 				next;
 			}
@@ -140,7 +146,7 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 		}
 			 
 		#Is the job still in the SGE queue?
-		unless (defined(${jid}) && ${jid} == ${sgeid} && ( $jstatus eq "r" || $jstatus eq "qw") ) {
+		unless (defined(${jid}) && ${jid} == ${sgeid} && ( ${jstatus} eq "r" || ${jstatus} eq "qw") ) {
 			#Update Database entry to error!
 			my $sql3 = "UPDATE jobs SET status = 'error' WHERE id=".$dbh->quote($id);		
 			my $rows_affected = $dbh->do($sql3);
@@ -156,7 +162,7 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 	
 	#to-halt jobs!
 	if($status eq 'halt') {
-		print "Halting job ".$id."..";
+		print "halt: Halting job ".$id."..";
 	
 		$sgeid = recoverSGEID();
 		
@@ -178,8 +184,6 @@ while(($id, $uid, $name, $expressionfile, $expressiontype, $predictortype, $agef
 $dbh->disconnect();
 
 print "Done!\n";
-
-exit(1);
 
 sub scheduleJob { 
 
@@ -252,11 +256,9 @@ sub scheduleJob {
 sub recoverSGEID {
 
 	$errornr=0;
-	$outputnr=0;
+	$outputnr=0;	
 
-	print "\ndir:".${userdata}."/".$uid."/".$id."\n"; 
-
-	opendir(DIR, $userdata."/".$uid."/".$id );
+	opendir(DIR, ${userdata}."/".${uid}."/".${id} );
 	my @files = readdir DIR;
 	foreach my $file (@files)
 	{
@@ -278,7 +280,9 @@ sub recoverSGEID {
 	
 	if($errornr != $outputnr) { die "Found different grid engine jobs outputs: ".$errornr.", and ".$outputnr.".\n"};
 	
-	return $errornr;
+	print "\nFound ${errornr} in dir:".${userdata}."/".${uid}."/".${id}."\n"; 
+
+	return ${errornr};
 }
 
 sub cancelJob {
@@ -286,3 +290,5 @@ sub cancelJob {
 		system(@args) == 0 or die "unable to cancel job: system @args failed: $?";
 		return;
 }	
+
+__END__
