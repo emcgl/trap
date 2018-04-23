@@ -1,0 +1,16 @@
+TRAP Overview
+=============
+
+Trap presents the user a web interface to configure an analysis. A grid scheduler checks for
+this configuration and runs it in sequence and results are copied to user directory and
+made available via the web interface.
+
+Trap uses:
+httpd		- to present dashboard via web interface
+mysqldb/mariadb - to store user information and job meta data
+Sun Gridengine 	- to batch run analyses
+R 		- to run actual analyses
+
+Trap is programmed in SQL / R / HTML and PHP
+
+
