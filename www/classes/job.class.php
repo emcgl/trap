@@ -433,15 +433,15 @@ class Job {
 			
 			if($admin) {
 				$username = User::retrieveName($this->uid);
-				$r.="<td>".$username."</td>";
+				$r.="<td>".htmlentities($username)."</td>";
 			}			
 			
-			$r.="<td>".$this->name."</td>";
-			$r.="<td>".Job::$expressiontypes[$this->expressiontype]."</td>";
-			$r.="<td>".$this->expressionfile."</td>";
-			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
-			$r.="<td>".$this->agefile."</td>";
-			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : ($this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"")).">".$this->status."</td>";
+			$r.="<td>".htmlentities($this->name)."</td>";
+			$r.="<td>".htmlentities(Job::$expressiontypes[$this->expressiontype])."</td>";
+			$r.="<td>".htmlentities($this->expressionfile)."</td>";
+			$r.="<td>".htmlentities(Job::$predictortypes[$this->predictortype])."</td>";
+			$r.="<td>".htmlentities($this->agefile)."</td>";
+			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : ($this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"")).">".htmlentities($this->status)."</td>";
 			$r.="<td><input id=\"results_".$this->id."\" name=\"results_".$this->id."\" type=\"submit\" ".($this->status=="error" ? "value=\"Message\"" : "value=\"Results\"").($this->isFinished() || $this->hasError() ? "" : "disabled")."></td>";
 			$r.="</tr>".PHP_EOL;
 				
@@ -449,18 +449,18 @@ class Job {
 		} else {
 			
 			$r= "<tr>";
-			$r.="<td>".$this->id."</td>";
+			$r.="<td>".htmlentities($this->id)."</td>";
 			
 			if($admin) {
 				$username = User::retrieveName($this->uid);
-				$r.="<td>".$username."</td>";
+				$r.="<td>".htmlentities($username)."</td>";
 			}
 			
-			$r.="<td>".$this->name."</td>";
-			$r.="<td>".Job::$expressiontypes[$this->expressiontype]."</td>";
-			$r.="<td>".$this->expressionfile."</td>";
-			$r.="<td>".Job::$predictortypes[$this->predictortype]."</td>";
-			$r.="<td>".$this->agefile."</td>";	
+			$r.="<td>".htmlentities($this->name)."</td>";
+			$r.="<td>".htmlentities(Job::$expressiontypes[$this->expressiontype])."</td>";
+			$r.="<td>".htmlentities($this->expressionfile)."</td>";
+			$r.="<td>".htmlentities(Job::$predictortypes[$this->predictortype])."</td>";
+			$r.="<td>".htmlentities($this->agefile)."</td>";	
 			$r.="<td ".($this->status=="running" ? "class=\"runningstatus\"" : ($this->status=="error" ? "class=\"errorstatus\"" : "class=\"staticstatus\"")).">".$this->status."</td>".PHP_EOL;
 			$r.="<td>".PHP_EOL;
 			$r.="<table class=\"subtbl\">".PHP_EOL;

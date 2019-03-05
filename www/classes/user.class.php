@@ -447,15 +447,15 @@ class User
 		if(!$edit) {
 			
 			$r.="<tr>";
-			$r.="<td>".$this->id."</td>";
-			$r.="<td>".$this->username."</td>";
+			$r.="<td>".htmlentities($this->id)."</td>";
+			$r.="<td>".htmlentities($this->username)."</td>";
 			$r.="<td>[Secret]</td>";
-			$r.="<td>".$this->name."</td>";
-			$r.="<td>".$this->email."</td>";
-			$r.="<td>".$this->jobtitle."</td>";
-			$r.="<td>".$this->affiliation."</td>";
+			$r.="<td>".htmlentities($this->name)."</td>";
+			$r.="<td>".htmlentities($this->email)."</td>";
+			$r.="<td>".htmlentities($this->jobtitle)."</td>";
+			$r.="<td>".htmlentities($this->affiliation)."</td>";
 			$level = array_search($this->nlevel, SiteMap::$UserLevels);
-			$r.="<td>".$level."</td>";
+			$r.="<td>".htmlentities($level)."</td>";
 			
 			$r.="</tr>".PHP_EOL;
 			
