@@ -13,4 +13,7 @@ R 		- to run actual analyses
 
 Trap is programmed in SQL / R / HTML and PHP
 
-
+The folder provide:
+   backend - the R scripts, transcriptome data and analysis invokation shell scripts  
+   sql     - database layouts for users, jobs for the web frontend
+   www     - PHP web application code - web frontend 
