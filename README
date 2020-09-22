@@ -17,3 +17,5 @@ The folder provide:
    backend - the R scripts, transcriptome data and analysis invokation shell scripts  
    sql     - database layouts for users, jobs for the web frontend
    www     - PHP web application code - web frontend 
+
+In order to manually run: check the comments in the R scripts inside the backend directory (SCALED-PREDICTOR-XXXX.R)
